@@ -1,4 +1,4 @@
-import { nanoid } from 'nanoid'
+
 
 export const help = [
     <>
@@ -24,6 +24,6 @@ export const help = [
       <br />
     </>
 
-  ];
+  ]
 
 //  export const invalid = 

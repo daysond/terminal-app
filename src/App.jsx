@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import './App.css'
 import { nanoid } from 'nanoid'
 import { help } from './command'
-import { Output } from './components/Output'
+import { InvalidOutput, EchoCmd, InvalidOutputMsg, LsOutput, CatOutput, WelcomeBanner } from './components/Output'
+import { data } from './data'
 
 function App() {
   
@@ -13,22 +14,35 @@ function App() {
   
   // Handle user command
   const handleChange = (event) => {
-    setUserCommand(event.target.value)
+    setUserCommand(event.target.value.replace(/\r?\n|\r/g, ""))
     // console.log(event.target.value)
   }
 
   const handleKeyDown = (event) => {
-    // console.log(event.key)
+    console.log(event.key)
     if(event.key === 'Enter') {
       //TODO: FIRE COMMAND
       response()
-      
       setUserCommand("")
-      
     }
+
+    if(event.key === 'ArrowUp') {
+      console.log("upppp")
+    }
+
+    if(event.key === 'ArrowDown') {
+      console.log("down....")
+    }
+
+    if(event.key === 'Tab') {
+      console.log('tab')
+    }
+
+
   }
 
   useEffect(()=>{
+    setLogs([<WelcomeBanner key={nanoid()} />])
     inputReference.current.focus()
   }, [])
 
@@ -39,7 +53,9 @@ function App() {
 
   // Response to user command
   const response = () => {
-    const cmd = userCommand.replace(/\r?\n|\r/g, "")
+    const inputs = userCommand.split(" ")
+    const cmd = inputs[0]
+    const arg = inputs[1]
 
     switch (cmd) {
       case "clear":
@@ -48,18 +64,61 @@ function App() {
       
       case "help":
         setLogs(prevState => [...prevState,
-        <Output key={nanoid()} cmd={cmd}/>, ...help])
+        <EchoCmd key={nanoid()} cmd={cmd}/>, ...help])
         break
+      
+      case "ls":
+        const contents = [{
+          name: "start.txt",
+          isFolder: false,
+          content: "start file"
+        }, 
+        {
+          name: "challenges",
+          isFolder: true,
+          content: []
+        }]
+
+        setLogs(prevState => [...prevState,
+          <EchoCmd key={nanoid()} cmd={cmd}/>,
+          <LsOutput key={nanoid()} contents={contents} />])
         
+        break
+      
+      case "request":
+        break
+
+      case "cat":
+        setLogs(prevState => [...prevState,
+          <EchoCmd key={nanoid()} cmd={cmd}/>,
+          <CatOutput key={nanoid()} content={"Lorem, ipsum dolor sit amet consectetur adipisicing elit. Laborum provident cupiditate officia enim assumenda perspiciatis, delectus sit, explicabo itaque voluptate asperiores ex totam dolor aspernatur aperiam recusandae quo expedita nam. \n delectus sit, explicabo itaque voluptate asperiores ex totam dolor aspernatur aperiam recusandae quo expedita nam."}/>])
+
+          break
+
+      case "cd":
+          if(!arg) {
+            setLogs(prevState => [...prevState,
+              <EchoCmd key={nanoid()} cmd={cmd}/>])
+          }
+          break
+
+      case "edit":
+          if(!arg) {
+              console.log("no arg")
+              setLogs(prevState => [...prevState,
+                <EchoCmd key={nanoid()} cmd={cmd}/>,
+                <InvalidOutputMsg key={nanoid()} cmd={cmd} msg={"No such file or directory"} />])
+          }
+          break 
+
       default:
         setLogs(prevState => [...prevState,
-          <Output key={nanoid()} cmd={cmd}/>,
-          <Output key={nanoid()} cmd={cmd} valid={false} />])
+          <EchoCmd key={nanoid()} cmd={cmd}/>,
+          <InvalidOutput key={nanoid()} cmd={cmd} />])
     }
 
   }
   
-
 
   const cmd = userCommand.split('').map(c => <span key={nanoid()}>{c}</span> )
 
@@ -90,7 +149,6 @@ function App() {
       spellCheck="false" 
       tabIndex="1" 
       className="cmd-clipboard" 
-      data-cmd-prompt="foobar:~/sess$ " 
       value={userCommand}
       onKeyDown={handleKeyDown}
       onChange={handleChange}

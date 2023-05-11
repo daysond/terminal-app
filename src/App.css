@@ -33,6 +33,10 @@ main {
   color: orange;
 }
 
+.term-yellow {
+  color: yellow;
+}
+
 .terminal-output {
   /* border: 2px solid blue; */
 }
@@ -54,10 +58,15 @@ main {
   color: orange;
 }
 
-/* .terminal-wrapper {
-  width: 100%;
-  height: 100%;
-} */
+.block-span {
+  display: block;
+  margin-top: 5px;
+}
+
+.terminal-p {
+  margin-bottom: 5px;
+}
+
 
 /*!
  *       __ _____                     ________                              __
@@ -111,9 +120,9 @@ main {
   user-select: none
 }
 
-.terminal audio,.terminal canvas,.terminal img,.terminal object {
+/* .terminal audio,.terminal canvas,.terminal img,.terminal object {
   cursor: default
-}
+} */
 
 .terminal {
   line-height: normal;
@@ -121,9 +130,9 @@ main {
   position: relative
 }
 
-terminal.terminal-temp {
+/* terminal.terminal-temp {
   visibility: hidden
-}
+} */
 
 .terminal {
   contain: content
