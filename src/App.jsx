@@ -10,7 +10,9 @@ function App() {
   const cmdPromt = "foobar:~/sess$ "
   const inputReference = useRef(null)
   const [userCommand, setUserCommand] = useState("")
-  const [logs, setLogs] = useState([])
+  const [outputs, setOutputs] = useState([])
+  const [previousCmds, setPreviousCmds] = useState([])
+  const [currentCmdIdx,  setCurrentCmdIdx] = useState(-1)
   
   // Handle user command
   const handleChange = (event) => {
@@ -19,19 +21,35 @@ function App() {
   }
 
   const handleKeyDown = (event) => {
-    console.log(event.key)
+    // console.log(event.key)
     if(event.key === 'Enter') {
       //TODO: FIRE COMMAND
+      setPreviousCmds(prev => userCommand === previousCmds[0] ? prev : [userCommand, ...prev])
+      setCurrentCmdIdx(-1)
       response()
       setUserCommand("")
     }
 
     if(event.key === 'ArrowUp') {
-      console.log("upppp")
+      
+      const newIdx = (currentCmdIdx + 1) === previousCmds.length ? currentCmdIdx : currentCmdIdx + 1
+      setCurrentCmdIdx(newIdx)
+
+      console.log(currentCmdIdx)
+      setUserCommand(previousCmds[newIdx])
     }
 
     if(event.key === 'ArrowDown') {
-      console.log("down....")
+      // if(currentCmdIdx === 0) {
+      //   setUserCommand("")
+      //   setCurrentCmdIdx(-1)
+      // } else {
+        const newIdx = (currentCmdIdx - 1) <= -1 ? -1 : currentCmdIdx - 1
+        console.log(newIdx)
+        setCurrentCmdIdx(newIdx)
+        setUserCommand( newIdx === -1 ? "" : previousCmds[newIdx])
+      // }
+
     }
 
     if(event.key === 'Tab') {
@@ -42,7 +60,7 @@ function App() {
   }
 
   useEffect(()=>{
-    setLogs([<WelcomeBanner key={nanoid()} />])
+    setOutputs([<WelcomeBanner key={nanoid()} />])
     inputReference.current.focus()
   }, [])
 
@@ -59,11 +77,11 @@ function App() {
 
     switch (cmd) {
       case "clear":
-        setLogs([])
+        setOutputs([])
         break
       
       case "help":
-        setLogs(prevState => [...prevState,
+        setOutputs(prevState => [...prevState,
         <EchoCmd key={nanoid()} cmd={cmd}/>, ...help])
         break
       
@@ -79,7 +97,7 @@ function App() {
           content: []
         }]
 
-        setLogs(prevState => [...prevState,
+        setOutputs(prevState => [...prevState,
           <EchoCmd key={nanoid()} cmd={cmd}/>,
           <LsOutput key={nanoid()} contents={contents} />])
         
@@ -89,7 +107,7 @@ function App() {
         break
 
       case "cat":
-        setLogs(prevState => [...prevState,
+        setOutputs(prevState => [...prevState,
           <EchoCmd key={nanoid()} cmd={cmd}/>,
           <CatOutput key={nanoid()} content={"Lorem, ipsum dolor sit amet consectetur adipisicing elit. Laborum provident cupiditate officia enim assumenda perspiciatis, delectus sit, explicabo itaque voluptate asperiores ex totam dolor aspernatur aperiam recusandae quo expedita nam. \n delectus sit, explicabo itaque voluptate asperiores ex totam dolor aspernatur aperiam recusandae quo expedita nam."}/>])
 
@@ -97,7 +115,7 @@ function App() {
 
       case "cd":
           if(!arg) {
-            setLogs(prevState => [...prevState,
+            setOutputs(prevState => [...prevState,
               <EchoCmd key={nanoid()} cmd={cmd}/>])
           }
           break
@@ -105,14 +123,14 @@ function App() {
       case "edit":
           if(!arg) {
               console.log("no arg")
-              setLogs(prevState => [...prevState,
+              setOutputs(prevState => [...prevState,
                 <EchoCmd key={nanoid()} cmd={cmd}/>,
                 <InvalidOutputMsg key={nanoid()} cmd={cmd} msg={"No such file or directory"} />])
           }
           break 
 
       default:
-        setLogs(prevState => [...prevState,
+        setOutputs(prevState => [...prevState,
           <EchoCmd key={nanoid()} cmd={cmd}/>,
           <InvalidOutput key={nanoid()} cmd={cmd} />])
     }
@@ -120,13 +138,13 @@ function App() {
   }
   
 
-  const cmd = userCommand.split('').map(c => <span key={nanoid()}>{c}</span> )
+  const cmd = userCommand?.split('').map(c => <span key={nanoid()}>{c}</span> )
 
   return (
     <main className='console active terminal' onClick={focusTextArea}>
     <div className='terminal-wrapper' >
       <div className='terminal-output' >
-      {logs}
+      {outputs}
       </div>
       <div className="cmd enabled">
         <div className="cmd-wrapper">
