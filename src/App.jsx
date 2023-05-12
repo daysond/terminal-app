@@ -136,7 +136,7 @@ function App() {
       case "cat":
         setOutputs(prevState => [...prevState,
           <EchoCmd key={nanoid()} cmd={cmd}/>,
-          <CatOutput key={nanoid()} content={"Lorem, ipsum dolor sit amet consectetur adipisicing elit. Laborum provident cupiditate officia enim assumenda perspiciatis, delectus sit, explicabo itaque voluptate asperiores ex totam dolor aspernatur aperiam recusandae quo expedita nam. \n delectus sit, explicabo itaque voluptate asperiores ex totam dolor aspernatur aperiam recusandae quo expedita nam."}/>])
+          <CatOutput key={nanoid()} fileContent={"Lorem, ipsum dolor sit amet consectetur adipisicing elit. Laborum provident cupiditate officia enim assumenda perspiciatis, delectus sit, explicabo itaque voluptate asperiores ex totam dolor aspernatur aperiam recusandae quo expedita nam. \n delectus sit, explicabo itaque voluptate asperiores ex totam dolor aspernatur aperiam recusandae quo expedita nam."}/>])
 
           break
 
