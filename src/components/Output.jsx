@@ -35,10 +35,9 @@ export const WelcomeBanner = () => {
 export const EchoCmd = ({cmd}) => {
 
     return (
-       
         <div style={{width: '100%'}}>
             <span className='cmd-prompt'>{cmdPromt}</span>
-            <span>{cmd}</span>
+            <span className="">{cmd}</span>
         </div>
     )
 }
@@ -75,9 +74,9 @@ export const LsOutput = ({contents}) => {
     )
 }
 
-export const CatOutput = ({content}) => {
+export const CatOutput = ({fileContent}) => {
 
-    const pElements = content.split("\n").map(p =>
+    const pElements = fileContent.split("\n").map(p =>
         <p key={nanoid()} className="terminal-p" >{p}</p>
     )
 

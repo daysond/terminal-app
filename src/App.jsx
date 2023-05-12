@@ -13,10 +13,12 @@ function App() {
   const [outputs, setOutputs] = useState([])
   const [previousCmds, setPreviousCmds] = useState([])
   const [currentCmdIdx,  setCurrentCmdIdx] = useState(-1)
+  const [cursorIdx, setCursorIdx] = useState(0)
   
   // Handle user command
   const handleChange = (event) => {
     setUserCommand(event.target.value.replace(/\r?\n|\r/g, ""))
+    setCursorIdx(inputReference.current.selectionStart)
     // console.log(event.target.value)
   }
 
@@ -30,25 +32,49 @@ function App() {
       setUserCommand("")
     }
 
-    if(event.key === 'ArrowUp') {
-      
-      const newIdx = (currentCmdIdx + 1) === previousCmds.length ? currentCmdIdx : currentCmdIdx + 1
-      setCurrentCmdIdx(newIdx)
+    console.log("global " + inputReference.current.selectionStart)
 
-      console.log(currentCmdIdx)
+    if(event.key === 'ArrowUp') {
+      event.preventDefault()
+      const newIdx = (currentCmdIdx + 1) === previousCmds.length ? currentCmdIdx : currentCmdIdx + 1
+      
+      setCurrentCmdIdx(newIdx)
       setUserCommand(previousCmds[newIdx])
+
+      const len = previousCmds[newIdx]?.length
+      inputReference.current.setSelectionRange(len, len)
+      setCursorIdx(len)
+      
     }
 
     if(event.key === 'ArrowDown') {
-      // if(currentCmdIdx === 0) {
-      //   setUserCommand("")
-      //   setCurrentCmdIdx(-1)
-      // } else {
+        event.preventDefault()
         const newIdx = (currentCmdIdx - 1) <= -1 ? -1 : currentCmdIdx - 1
-        console.log(newIdx)
         setCurrentCmdIdx(newIdx)
         setUserCommand( newIdx === -1 ? "" : previousCmds[newIdx])
-      // }
+
+        const len = previousCmds[newIdx]?.length
+        if(newIdx !== -1) {
+          inputReference.current.setSelectionRange(len, len)
+          setCursorIdx(len)
+          
+        }
+    }
+
+    if(event.key === 'ArrowLeft') {
+      const caretPosition = inputReference.current.selectionStart;
+      console.log("left: current pos " + caretPosition)
+      const newPos = caretPosition <= 1 ? 0 : caretPosition - 1
+      console.log("left: new pos  "+ newPos)
+      setCursorIdx(newPos)
+    }
+
+    if(event.key === 'ArrowRight') {
+      const caretPosition = inputReference.current.selectionStart;
+      console.log(caretPosition)
+      const newPos = caretPosition >= userCommand.length ? userCommand.length : caretPosition + 1
+      console.log(newPos)
+      setCursorIdx(newPos)
 
     }
 
@@ -71,7 +97,8 @@ function App() {
 
   // Response to user command
   const response = () => {
-    const inputs = userCommand.split(" ")
+    console.log(`[${userCommand}]`)
+    const inputs = userCommand.trimStart().split(" ")
     const cmd = inputs[0]
     const arg = inputs[1]
 
@@ -137,8 +164,27 @@ function App() {
 
   }
   
+  // let cmd = []
+   const cmd = userCommand?.split('').map((c, index )=> 
+  index === cursorIdx ?
+      <span key={nanoid()} className="cmd-cursor cmd-blink">
+      <span data-text="" className="end">
+        <span style={{whiteSpace: 'pre'}}>{c}<span></span></span>
+      </span>
+    </span>
+  : <span key={nanoid()}  style={{whiteSpace: 'pre'}}>{c}</span>)
 
-  const cmd = userCommand?.split('').map(c => <span key={nanoid()}>{c}</span> )
+  console.log(cursorIdx)
+  if (cursorIdx === userCommand.length || userCommand === "") {
+    cmd.push(
+      <span className="cmd-cursor cmd-blink">
+      <span data-text="" className="end">
+        <span>&nbsp;<span></span></span>
+      </span>
+    </span>
+    )
+  }
+
 
   return (
     <main className='console active terminal' onClick={focusTextArea}>
@@ -154,12 +200,10 @@ function App() {
             {/* </span> */}
           </span>
           <div className="cmd-cursor-line" role="presentation" aria-hidden="true">
-            <span>{cmd}</span>
-            <span className="cmd-cursor cmd-blink">
-              <span data-text="" className="end">
-                <span>&nbsp;<span></span></span>
-              </span>
-            </span>
+            {/* <span>{cmdBeforeCursor}</span> */}
+            {cmd}
+            {/* cursor goes here */}
+            {/* <span>{cmdAfterCursor}</span> */}
           </div>
       </div>
       <textarea 
@@ -173,8 +217,7 @@ function App() {
       ref={inputReference}
       style={{left: '150px', top: '350px', width: '70px', height: '56px'}}
       autoFocus />
-</div>
-
+    </div>
     </div>
     </main>
   )
