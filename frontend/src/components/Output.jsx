@@ -1,5 +1,4 @@
 import { nanoid } from "nanoid"
-const cmdPromt = "foobar:~/sess$ "
 
 export const WelcomeBanner = () => {
     const banner = `
@@ -32,11 +31,15 @@ export const WelcomeBanner = () => {
             )
 }
 
-export const EchoCmd = ({cmd}) => {
+export const EchoCmd = ({cmdPrompt, cmd}) => {
+
+    const cmdPromptStyle = {
+        width:`${cmdPrompt?.length}ch`
+    }
 
     return (
         <div style={{width: '100%'}}>
-            <span className='cmd-prompt'>{cmdPromt}</span>
+            <span className='cmd-prompt' style={cmdPromptStyle}>{cmdPrompt}</span>
             <span className="">{cmd}</span>
         </div>
     )
@@ -46,7 +49,7 @@ export const InvalidOutput = ({cmd}) => {
     return (
     <div style={{width: '100%'}}>
         <span>{`${cmd}: command not found.  Type `}</span>
-        <span className="term-orange">help</span>
+        <span className="command">help</span>
         <span> {" for a list of commands"}</span>
     </div>
     )
@@ -69,7 +72,6 @@ export const LsOutput = ({contents}) => {
     return (
         <div style={{width: '100%'}}>
         {fileElements}
-        <br />
         </div>
     )
 }

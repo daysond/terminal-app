@@ -4,7 +4,9 @@
     box-sizing: border-box;
   }
   
-  
+  .shadow {
+     box-shadow: 0px 2px 5px rgba(0,0,0,.155);
+  }
   main {
     width: 100vw;
     height: 100vh;
@@ -23,10 +25,13 @@
   
   .command {
     display: inline-block;
-    color: red;
-    width: 20ch;
-    margin-bottom: 5px;
+    color: rgb(246, 226, 0);
+    /* margin-bottom: 5px; */
     /* border: 2px solid white; */
+  }
+
+  .cmd-width {
+    width: 12ch;
   }
   
   .term-orange {
@@ -34,10 +39,11 @@
   }
   
   .term-yellow {
-    color: yellow;
+    color: rgb(85, 255, 210);
   }
   
-  .terminal-output {
+  .terminal-output div {
+    margin-bottom: 5px;
     /* border: 2px solid blue; */
   }
   
@@ -51,21 +57,84 @@
   .cmd-prompt {
     margin-left: 0px;
     visibility: visible;
-  }
-  
-  .cmd-prompt{
     width: 15ch;
     color: orange;
   }
+
   
   .block-span {
     display: block;
-    margin-top: 5px;
+    margin-bottom: 5px;
   }
   
   .terminal-p {
     margin-bottom: 5px;
   }
+
+  .cmd-group {
+    padding: 5px 5px 5px 10px;
+  }
+
+  .cmd-group span {
+    margin-bottom: 5px;
+  }
+
+
+ /* editor  */
+ .gutter.gutter-horizontal:hover {
+    cursor: col-resize;
+}
+
+.gutter {
+    background-color: #222222;
+}
+
+ .split {
+    display: flex;
+}
+
+.editor {
+    display: flex;
+    flex-direction: column;
+
+}
+
+.ace_editor {
+    width: 80%;
+    height: 100%;
+    flex: 1;
+    overflow-y: auto;
+}
+
+.editor-header {
+  background-color: rgb(255, 78, 108);
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+
+}
+
+.editor-filename{
+  color: rgb(255, 255, 255);
+  padding: 5px;
+  padding-left: 42px;
+  font-family: monospace;
+  font-weight: 500;
+  font-size: 16px;
+}
+
+.editor-footer {
+  background-color: #d2d2d2;
+  font-family: monospace;
+}
+
+.editor-cmd {
+  color: #222222;
+  font-weight: 500;
+  font-size: 14px;
+  padding: 2px;
+  white-space: pre;
+}
   
   
   /*!
