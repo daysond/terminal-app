@@ -3,14 +3,15 @@ require('dotenv').config()
 
 const express = require('express')
 const mongoose = require('mongoose')
+// const cors = require('cors')
 
 const challengeRoutes = require('./routes/challengeRoutes')
-
-
 
 const app = express()
 
 // Global middleware
+// app.use(cors())
+app.use(express.static('dist'))
 app.use(express.json())
 app.use( (req, res, next) => {
     console.log(req.path, req.method)
@@ -33,11 +34,11 @@ mongoose.connect(process.env.MONGO_URI)
 
 
 // Endpoints
-app.get('/', (req, res) => {
+// app.get('/', (req, res) => {
 
-    res.json({
-        msg:'welcome'
-    })
-})
+//     res.json({
+//         msg:'welcome'
+//     })
+// })
 
 

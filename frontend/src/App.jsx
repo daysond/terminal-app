@@ -21,9 +21,31 @@ function App() {
   const absRootRef = useRef(absRoot)
   const [outputs, setOutputs] = useState([])
   const [previousCmds, setPreviousCmds] = useState([])
+  
+  //NOTE: ??
+  const [fs, setFS] = useState(null)
+
   useEffect(()=>{
     setOutputs([<WelcomeBanner key={nanoid()} />])
     setOS(getOperatingSystem(window))
+
+    const fetchFileSystem = async () => {
+      console.log("fetching?")
+      await fetch('/api/challenge/')
+        .then(res=>res.json())
+        .then(json=>{
+          console.log(json)
+          console.log(json.name)
+        })
+      
+      // if(res.ok) {
+      //   console.log(json)
+      //   // setFS(fs)
+      // }
+    }
+
+    fetchFileSystem()
+
   }, [])
 
   //MARK: Editor States
@@ -79,48 +101,61 @@ function App() {
     absRootRef: absRootRef,
   }
 
-  return editorMode ? (
-    <Split
-    sizes={[50, 50]}
-    direction="horizontal"
-    className="split"
-    >
-    <Terminal {...terminalProps} />
-    
+  return(
+    <BrowserRouter>
+    <Routes>
+       <Route 
+         path='/'
+         element={
+          editorMode ? (
+            <Split
+            sizes={[50, 50]}
+            direction="horizontal"
+            className="split"
+            >
+            <Terminal {...terminalProps} />
+            <div className='editor'>
+              {editorFile.name !== undefined && 
+              <div className='editor-header shadow'>
+                <p className='editor-filename'>{editorFile.name}</p>
+                <p className='editor-filename'>{lastSaved}</p>  
+              </div>
+              }
+              < AceEditor 
+                height='100vh'
+                width='100%' 
+                mode="python" 
+                theme="monokai"
+                wrapEnabled={true}
+                showPrintMargin={false}
+                cursorStart={3}
+                setOptions={{
+                  enableBasicAutocompletion: true,
+                  enableLiveAutocompletion: true,
+                  enableSnippets: true
+                }}
+                commands={editorCommands}
+                focus={true}
+                value={editorText}
+                defaultValue={editorFile.content}
+                onChange={handleEditorChange}
+              />
+              <div className='editor-footer'>
+              <p className='editor-cmd'> [Save] {os === "Mac" ? "Cmd+S" : "Ctrl+S"}      [Close] {os === "Mac" ? "Cmd+E" : "Ctrl+E"} </p>
+              </div>
+            </div>
+          </Split>) 
+          
+          : ( <Terminal {...terminalProps} /> )
+         }
+       >
+     
+       </Route>
+    </Routes>
+    </BrowserRouter>
+  )
 
-    <div className='editor'>
-      {editorFile.name !== undefined && 
-      <div className='editor-header shadow'>
-        <p className='editor-filename'>{editorFile.name}</p>
-        <p className='editor-filename'>{lastSaved}</p>  
-      </div>
-      }
-      < AceEditor 
-        height='100vh'
-        width='100%' 
-        mode="python" 
-        theme="monokai"
-        wrapEnabled={true}
-        showPrintMargin={false}
-        cursorStart={3}
-        setOptions={{
-          enableBasicAutocompletion: true,
-          enableLiveAutocompletion: true,
-          enableSnippets: true
-        }}
-        commands={editorCommands}
-        focus={true}
-        value={editorText}
-        defaultValue={editorFile.content}
-        onChange={handleEditorChange}
-      />
-      <div className='editor-footer'>
-      <p className='editor-cmd'> [Save] {os === "Mac" ? "Cmd+S" : "Ctrl+S"}      [Close] {os === "Mac" ? "Cmd+E" : "Ctrl+E"} </p>
-      </div>
-    </div>
-  </Split>) 
-  
-  : ( <Terminal {...terminalProps} /> )
+
 }
 
 export default App
