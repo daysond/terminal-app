@@ -10,32 +10,32 @@ import 'ace-builds/src-noconflict/snippets/python'
 import "ace-builds/src-noconflict/ext-language_tools";
 import Terminal from './components/Terminal';
 import { getOperatingSystem, getTime } from './OS'
-import { root, absRoot } from './filesystem'
+import { absRoot, createFS } from './filesystem'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 
 function App() {
 
   const [os, setOS] = useState("Unknown")
   // Terminal States
-  const fsRef = useRef(root)
-  const absRootRef = useRef(absRoot)
+  // const fsRef = useRef(root)
+  const filesystemRootRef = useRef(absRoot)
+  
   const [outputs, setOutputs] = useState([])
   const [previousCmds, setPreviousCmds] = useState([])
   
   //NOTE: ??
-  const [fs, setFS] = useState(null)
+  const [filesystemJSON, setFilesystemJSON] = useState(null)
 
   useEffect(()=>{
     setOutputs([<WelcomeBanner key={nanoid()} />])
     setOS(getOperatingSystem(window))
 
     const fetchFileSystem = async () => {
-      console.log("fetching?")
+      //TODO: VAlidate res ??? 
       await fetch('/api/challenge/')
         .then(res=>res.json())
         .then(json=>{
-          console.log(json)
-          console.log(json.name)
+          setFilesystemJSON(json)
         })
       
       // if(res.ok) {
@@ -47,6 +47,7 @@ function App() {
     fetchFileSystem()
 
   }, [])
+
 
   //MARK: Editor States
   const [editorMode, setEditorMode] = useState(false)
@@ -89,6 +90,7 @@ function App() {
   ]
 
 
+
   //MARK: Props
 
   const terminalProps = {
@@ -97,11 +99,13 @@ function App() {
     setOutputs: setOutputs,
     previousCmds: previousCmds,
     setPreviousCmds: setPreviousCmds,
-    fsRef: fsRef,
-    absRootRef: absRootRef,
+    // requestNewChallenge: requestNewChallenge,
+    filesystemJSON: filesystemJSON,
+    filesystemRootRef: filesystemRootRef,
   }
 
   return(
+    filesystemJSON &&
     <BrowserRouter>
     <Routes>
        <Route 

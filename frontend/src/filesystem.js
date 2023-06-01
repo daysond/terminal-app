@@ -141,14 +141,16 @@ class Node {
 
 export const absRoot = new Node()
 
-const createFS = (fs, parent) => {
+export const createFS = (fs, parent) => {
+
     if(parent === null) {
         absRoot.name = fs.name
         absRoot.isFolder = fs.type === "directory"
         absRoot.parent = parent
         absRoot.content = fs.content
-        absRoot.children = fs.children?.filter(c => c.level < 1)
-                                        .map(c => createFS(c, absRoot))
+        absRoot.children = fs.children?.map(c => createFS(c, absRoot))
+        // absRoot.children = fs.children?.filter(c => c.level < 1)
+        //                                 .map(c => createFS(c, absRoot))
         return absRoot
     }
 
@@ -161,5 +163,5 @@ const createFS = (fs, parent) => {
     return root
 }
 
-export let root = createFS(fs, null)
+// export let root = createFS(fs, null)
 

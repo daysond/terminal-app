@@ -3,15 +3,17 @@ import { help, start } from '../command'
 import { InvalidOutput, EchoCmd, InvalidOutputMsg, LsOutput, CatOutput, WelcomeBanner } from './Output'
 import { useEffect, useRef, useState } from 'react'
 import '../App.css'
+import { createFS } from '../filesystem'
 
-export default function Terminal({openEditor, outputs, setOutputs, previousCmds, setPreviousCmds, fsRef, absRootRef}) {
-
-
+export default function Terminal({openEditor, outputs, setOutputs, previousCmds, setPreviousCmds, filesystemJSON, filesystemRootRef}) {
+  
+    const [directory, setDirectory ]= useState(createFS(filesystemJSON, null))
     const inputReference = useRef(null)
     const [userCommand, setUserCommand] = useState("")
     const [currentCmdIdx,  setCurrentCmdIdx] = useState(-1)
     const [cursorIdx, setCursorIdx] = useState(0)
-    const [cmdPrompt, setCmdPrompt] = useState(`foobar:~/${fsRef.current.name} $ `)
+    const [cmdPrompt, setCmdPrompt] = useState(`foobar:~/${directory.name} $ `)
+
   
       // Handle user command
     const handleChange = (event) => {
@@ -87,6 +89,26 @@ export default function Terminal({openEditor, outputs, setOutputs, previousCmds,
     inputReference.current.focus()
   }
 
+  const requestNewChallenge = () => {
+
+    const requestOptions = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    }
+    
+    //TODO: ASYNC ? VALIDATE RES? is user able to request new challenge?
+     fetch('/api/challenge/request', requestOptions)
+    .then(res=>res.json())
+    .then(json=>{
+
+      const tempFs = filesystemJSON
+      tempFs.children.push(json)
+      setDirectory(createFS(tempFs, null))
+
+    })
+  
+}
+
   const response = () => {
     console.log(`[${userCommand}]`)
     const inputs = userCommand.trimStart().split(" ").filter(e => e != "")
@@ -108,7 +130,7 @@ export default function Terminal({openEditor, outputs, setOutputs, previousCmds,
 
         setOutputs(prevState => [...prevState,
           <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt} cmd={cmd}/>,
-          <LsOutput key={nanoid()} contents={fsRef.current.children} />])
+          <LsOutput key={nanoid()} contents={directory.children} />])
         
         break
 
@@ -126,7 +148,7 @@ export default function Terminal({openEditor, outputs, setOutputs, previousCmds,
             return start
           }
 
-          const file = fsRef.current.children.filter(e=>e.name === arg)
+          const file = directory.children.filter(e=>e.name === arg)
 
           if(!file.length) {
              return  <InvalidOutputMsg key={nanoid()} cmd={userCommand} msg={"No such file or directory"} />
@@ -158,16 +180,18 @@ export default function Terminal({openEditor, outputs, setOutputs, previousCmds,
               <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt} cmd={userCommand}/>])
           } else {
 
-            let tempDir = fsRef.current
+            let tempDir = directory
             const paths = arg.split('/')
             // absolute path starts with '/'
             
             if (arg === '/') {
-              fsRef.current = absRootRef.current
-              setCmdPrompt(`foobar:~/${fsRef.current.name} $ `)
+              setDirectory(filesystemRootRef.current)
+              setCmdPrompt(`foobar:~/${filesystemRootRef.current.name} $ `)
               setOutputs(prevState => [...prevState,
-                <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt}  cmd={userCommand}/>,
-                <LsOutput key={nanoid()} contents={fsRef.current.children} />])
+                <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt}  cmd={userCommand}/>])
+              // setOutputs(prevState => [...prevState,
+              //   <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt}  cmd={userCommand}/>,
+              //   <LsOutput key={nanoid()} contents={directory.children} />])
               return
             }
 
@@ -180,7 +204,7 @@ export default function Terminal({openEditor, outputs, setOutputs, previousCmds,
             if(paths[0] === '') {
               // paths.forEach(p => console.log(`[${p}]`))
               console.log("absolute " + paths.length)
-              tempDir = absRootRef.current
+              tempDir = filesystemRootRef.current
               paths.shift()
             }
 
@@ -219,12 +243,16 @@ export default function Terminal({openEditor, outputs, setOutputs, previousCmds,
               }
   
             if(!shouldTerminate) {
-              fsRef.current = tempDir
+              //REVIEW  CHANGE HERE
+              setDirectory(tempDir)
+              // fsRef = tempDir
               setCmdPrompt(`foobar:~/${tempDir.name} $ `)
 
               setOutputs(prevState => [...prevState,
-                <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt}  cmd={userCommand}/>,
-                <LsOutput key={nanoid()} contents={fsRef.current.children} />])
+                <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt}  cmd={userCommand}/>])
+              // setOutputs(prevState => [...prevState,
+              //   <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt}  cmd={userCommand}/>,
+              //   <LsOutput key={nanoid()} contents={tempDir.children} />])
 
             } else {
               setOutputs(prevState => [...prevState,
@@ -242,7 +270,7 @@ export default function Terminal({openEditor, outputs, setOutputs, previousCmds,
                 <InvalidOutputMsg key={nanoid()} cmd={userCommand} msg={"No such file or directory"} />])
           } else {
 
-            const file = fsRef.current.children.filter(e=>e.name === arg)
+            const file = directory.children.filter(e=>e.name === arg)
 
             if(!file.length) {
               setOutputs(prevState => [...prevState,
@@ -267,6 +295,7 @@ export default function Terminal({openEditor, outputs, setOutputs, previousCmds,
       case "request":
         setOutputs(prevState => [...prevState,
           <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt} cmd={userCommand}/>])
+          requestNewChallenge()
         break
       case "status":
         setOutputs(prevState => [...prevState,
