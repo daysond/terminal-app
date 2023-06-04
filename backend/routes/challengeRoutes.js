@@ -8,7 +8,7 @@ const challengeController = require('../controllers/challengeController')
 
 const router = express.Router()
 
-// TODO: USER authentication
+// TODO: checking for user authentication
 router.route('/')
     .get(auth, challengeController.getChallengeInstruction)
 

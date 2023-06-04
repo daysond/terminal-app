@@ -7,12 +7,11 @@ const challengeModel = require('../models/challengeModel')
 exports.getChallengeInstruction = async (req, res) => {
     // TODO: USER authentication
     try {
-        const challenges = await challengeModel.find({name:"root"}, {_id:0}).lean() // without id
-        // TODO: CHANGE 3 to user level
-        res.status(200).json({...challenges[0], 
-                                children: challenges[0].children.filter(c => c.level < 3)})
-                                // NOTE: USER will create filesystem in frontend using createFS() 
-        
+        const currentYear = new Date().getFullYear();
+        console.log("[DEBUG] Getting challenge instructions. ")
+        const challenges = await challengeModel.find({name:"root", year: currentYear}, {_id:0}).lean() // without id
+        res.status(200).json(challenges[0])
+                         
     } catch (error) {
         console.log(error)
         res.status(400).json({error: error.message})

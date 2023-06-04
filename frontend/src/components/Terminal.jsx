@@ -3,7 +3,7 @@ import { help, start } from '../command'
 import { InvalidOutput, EchoCmd, InvalidOutputMsg, LsOutput, CatOutput, WelcomeBanner } from './Output'
 import { useEffect, useRef, useState } from 'react'
 import '../App.css'
-import { createFS } from '../filesystem'
+import { createFS } from '../util/filesystem'
 
 export default function Terminal({openEditor, outputs, setOutputs, previousCmds, setPreviousCmds, filesystemJSON, filesystemRootRef}) {
   
