@@ -7,8 +7,11 @@ export const authReducer = (state, action) => {
         case 'logged_in':
             return {user: action.payload}
         
-        case 'signed_up':
+        case 'logged_out':
             return {user: null}
+        
+        // case 'signed_up':
+        //     return {user: null}
     
         default:
             return state

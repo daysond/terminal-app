@@ -2,11 +2,13 @@ import { nanoid } from 'nanoid'
 import { help, start } from '../command'
 import { InvalidOutput, EchoCmd, InvalidOutputMsg, LsOutput, CatOutput, WelcomeBanner } from './Output'
 import { useEffect, useRef, useState } from 'react'
+import { useLogout } from '../hooks/useLogout'
 import '../App.css'
 import { createFS } from '../util/filesystem'
 
 export default function Terminal({openEditor, outputs, setOutputs, previousCmds, setPreviousCmds, filesystemJSON, filesystemRootRef}) {
   
+    const {logout} = useLogout()
     const [directory, setDirectory ]= useState(createFS(filesystemJSON, null))
     const inputReference = useRef(null)
     const [userCommand, setUserCommand] = useState("")
@@ -308,6 +310,9 @@ export default function Terminal({openEditor, outputs, setOutputs, previousCmds,
       case "verify":
         setOutputs(prevState => [...prevState,
           <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt} cmd={userCommand}/>])
+        break
+      case 'logout':
+        logout()
         break
       default:
         setOutputs(prevState => [...prevState,
