@@ -1,4 +1,5 @@
 import {useState} from 'react';
+import { useSignup } from '../hooks/useSignup';
 
 const SignUpPopup = ({ isOpen, onClose }) => {
   // Handle form submission
@@ -6,20 +7,22 @@ const SignUpPopup = ({ isOpen, onClose }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [err, setErr] = useState(null)
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // Perform sign-in logic
-    console.log(email)
-    setErr(email)
 
+  const {signup, isLoading, error} = useSignup()
+
+  
+  // const [err, setErr] = useState(null)
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    await signup(email, password, confirmPassword)
   };
 
   const clearData = () => {
     setEmail("")
     setPassword("")
     setConfirmPassword("")
-    setErr("")
+
     onClose()
   }
 
@@ -29,7 +32,14 @@ const SignUpPopup = ({ isOpen, onClose }) => {
         <h2 className='popup-title'>Accept Challenge</h2>
         <form onSubmit={handleSubmit}>
             <div className='sign-in-form-fields'>
-            {err && (<h3 className='auth-err-msg'>{err}</h3>)}
+            {error && (<h3 className='auth-err-msg'>{error}</h3>)}
+            {isLoading && (
+              <div className="loader">
+                <div className="scanner">
+                  <span className='signup-scanner'>Signing up...</span>
+                </div>
+            </div>
+            )}
             <div>
             <label htmlFor="email" className='auth-form-label'>Your Email:</label>
             <input
@@ -39,7 +49,7 @@ const SignUpPopup = ({ isOpen, onClose }) => {
                 value={email}
                 placeholder='Email'
                 onChange={(e) => setEmail(e.target.value)}
-                required
+                // required
             />
             </div>
             <div>
@@ -51,7 +61,7 @@ const SignUpPopup = ({ isOpen, onClose }) => {
                 value={password}
                 placeholder='Password'
                 onChange={(e) => setPassword(e.target.value)}
-                required
+                // required
             />
             </div>
             <div>
@@ -63,14 +73,14 @@ const SignUpPopup = ({ isOpen, onClose }) => {
                 value={confirmPassword}
                 placeholder='Password Again'
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                required
+                // required
             />
             </div>
             </div>
 
         <div className='auth-form-button-grp'>
-            <button className='auth-button bracket-button sign-up-button' type="submit"> {"Sign Up"}</button>
-            <button className="auth-button bracket-button close-button" onClick={clearData}>{"Close"}</button>
+            <button disabled={isLoading} className='auth-button bracket-button sign-up-button' type="submit"> {"Sign Up"}</button>
+            <button className="auth-button bracket-button close-button" onClick={clearData}>{"Cancel"}</button>
         </div>
         </form>
       </div>

@@ -29,7 +29,7 @@ const SignInPopup = ({ isOpen, onClose }) => {
             <div className='sign-in-form-fields'>
             {err && (<h3 className='auth-err-msg'>{err}</h3>)}
             <div>
-            <label htmlFor="email" className='auth-form-label'>Your Email:</label>
+            <label className='auth-form-label'>Your Email:</label>
             <input
                 className='auth-form-input'
                 type="email"
@@ -37,11 +37,11 @@ const SignInPopup = ({ isOpen, onClose }) => {
                 value={email}
                 placeholder='Email'
                 onChange={(e) => setEmail(e.target.value)}
-                required
+                // required
             />
             </div>
             <div>
-            <label htmlFor="password" className='auth-form-label'>Password:</label>
+            <label className='auth-form-label'>Password:</label>
             <input
             className='auth-form-input'
                 type="password"
@@ -49,14 +49,14 @@ const SignInPopup = ({ isOpen, onClose }) => {
                 value={password}
                 placeholder='Password'
                 onChange={(e) => setPassword(e.target.value)}
-                required
+                // required
             />
             </div>
             </div>
 
         <div className='auth-form-button-grp'>
             <button className='auth-button sign-in-button  bracket-button' type="submit"> {"Sign In"}</button>
-            <button className="auth-button close-button bracket-button" onClick={clearData}>{"Close"}</button>
+            <button className="auth-button close-button bracket-button" onClick={clearData}>{"Cancel"}</button>
         </div>
         </form>
       </div>
