@@ -18,29 +18,29 @@ export const useSignup = () => {
         setIsLoading(true)
         setError(null)
 
-        const response = await fetch('/api/user/signup', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({email, password})
-        })
+        // const response = await fetch('/api/user/signup', {
+        //     method: 'POST',
+        //     headers: {'Content-Type': 'application/json'},
+        //     body: JSON.stringify({email, password})
+        // })
 
-        const json = await response.json()
+        // const json = await response.json()
 
-        if(!response.ok) {
-            setIsLoading(false)
-            setError(json.error)
+        // if(!response.ok) {
+        //     setIsLoading(false)
+        //     setError(json.error)
         
-        } else {
+        // } else {
             
-            // save the user to local storage 
-            // TODO: Change it to redis ??
-            localStorage.setItem('user', JSON.stringify(json))
+        //     // save the user to local storage 
+        //     // TODO: Change it to redis ??
+        //     localStorage.setItem('user', JSON.stringify(json))
             
-            // update auth context
-            dispatch({type:"logged_in", payload: json})
+        //     // update auth context
+        //     dispatch({type:"logged_in", payload: json})
 
-            setIsLoading(false)
-        }
+        //     setIsLoading(false)
+        // }
     }
 
     return {signup, isLoading, error}

@@ -1,24 +1,24 @@
 import {useState} from 'react';
+import { useLogin } from '../hooks/useLogin';
 
 const SignInPopup = ({ isOpen, onClose }) => {
   // Handle form submission
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [err, setErr] = useState(null)
+  
+  const {login, isLoading, error} = useLogin()
 
   const clearData = () => {
     setEmail("")
     setPassword("")
-    setErr("")
     onClose()
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     // Perform sign-in logic
-    console.log(email)
-    setErr(email)
+    await login(email, password)
   };
 
   return (
@@ -27,7 +27,14 @@ const SignInPopup = ({ isOpen, onClose }) => {
         <h2 className='popup-title'>Sign In</h2>
         <form onSubmit={handleSubmit}>
             <div className='sign-in-form-fields'>
-            {err && (<h3 className='auth-err-msg'>{err}</h3>)}
+            {error && (<h3 className='auth-err-msg'>{error}</h3>)}
+            {isLoading && (
+              <div className="loader">
+                <div className="scanner">
+                  <span className='login-scanner'>Logging in...</span>
+                </div>
+            </div>
+            )}
             <div>
             <label className='auth-form-label'>Your Email:</label>
             <input
@@ -55,7 +62,7 @@ const SignInPopup = ({ isOpen, onClose }) => {
             </div>
 
         <div className='auth-form-button-grp'>
-            <button className='auth-button sign-in-button  bracket-button' type="submit"> {"Sign In"}</button>
+            <button disabled={isLoading} className='auth-button bracket-button sign-in-button' type="submit"> {"Sign In"}</button>
             <button className="auth-button close-button bracket-button" onClick={clearData}>{"Cancel"}</button>
         </div>
         </form>

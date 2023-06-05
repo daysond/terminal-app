@@ -256,6 +256,10 @@
     content: "Signing up..."
   }
 
+  .login-scanner::before{
+    content: "Logging in..."
+  }
+
   .scanner span::before {
     /* content: "Loading..."; */
     position: absolute;
