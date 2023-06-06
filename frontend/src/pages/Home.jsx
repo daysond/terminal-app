@@ -14,55 +14,53 @@ import { absRoot, createFS } from "../util/filesystem";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useAuthContext } from "../hooks/useAuthContext";
 import { ErrorPage } from "./ErrorPage";
-import { useLogout } from '../hooks/useLogout'
+import { useLogout } from "../hooks/useLogout";
 
 export const Home = () => {
-
   const [os, setOS] = useState("Unknown");
 
-  const {logout} = useLogout()
+  const { logout } = useLogout();
   const [outputs, setOutputs] = useState([]);
   const [previousCmds, setPreviousCmds] = useState([]);
   const filesystemRootRef = useRef(absRoot);
   // REVIEW:  get file system before home is loaded..?
   // TODO: CHANGE NEEDED
 
-  const [directory, setDirectory ]= useState(null)
-  const [responseErr, setResponseErr] = useState(null)
+  const [directory, setDirectory] = useState(null);
+  const [responseErr, setResponseErr] = useState(null);
 
-  const {user} = useAuthContext()
+  const { user } = useAuthContext();
 
   useEffect(() => {
     setOutputs([<WelcomeBanner key={nanoid()} />]);
     setOS(getOperatingSystem(window));
 
     const fetchFileSystem = async () => {
-  
       const response = await fetch("/api/challenge/", {
         headers: {
-          'authorization': `Bearer ${user?.token}`
-        }
-      })
+          authorization: `Bearer ${user?.token}`,
+        },
+      });
 
-      const json = await response.json()
-      
-      if(response.ok) {
-        console.log("[DEBUG] Got challenges")
+      const json = await response.json();
+
+      if (response.ok) {
+        console.log("[DEBUG] Got challenges");
         // setFilesystemJSON(json)
-        setDirectory(createFS(json, null))
+        setDirectory(createFS(json, null));
       } else {
         setResponseErr({
           status: response.status,
           message: json.message,
           action: logout,
-          actionName: ' Go Home '
-        })
+          actionName: " Go Home ",
+        });
       }
-    }
+    };
 
-    if(user) {
-      fetchFileSystem()
-    } 
+    if (user) {
+      fetchFileSystem();
+    }
   }, [user]);
 
   //MARK: Editor States
@@ -76,11 +74,40 @@ export const Home = () => {
   };
 
   const updateEidtorFile = (value) => {
-    console.log("file ", value)
+    console.log("file ", value);
     setEditorMode(true);
     setEditorFile(value);
     setEditorText(value.content);
   };
+
+  // MARK: ========== API CALLS ===========
+
+  const savefile = async (level, content) => {
+    setLastSaved(`Saving...`);
+    const requestOptions = {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        authorization: `Bearer ${user?.token}`,
+      },
+      body: JSON.stringify({ content: content, level: level }),
+    };
+
+    const response = await fetch("/api/challenge/save", requestOptions);
+
+    const json = await response.json();
+
+    if (response.ok) {
+      // setFilesystemJSON(json)
+      // console.log(json);
+      // setDirectory(createFS(json, null))
+      setLastSaved(`Last saved: ${getTime()}`);
+    } else {
+      setLastSaved(`Error saving file: ${json.message}`);
+    }
+  };
+
+  // ======================================
 
   const editorCommands = [
     {
@@ -97,10 +124,12 @@ export const Home = () => {
       name: "save",
       bindKey: { win: "Ctrl-S", mac: "Cmd-S" },
       exec: (editor) => {
-        console.log(editor.getValue());
-        console.log(editorFile._id)
+        const content = editor.getValue()
+        const level = editorFile.parent.level
+        savefile(level, content)
+        // console.log(editorFile.parent.level)
         editorFile.content = editor.getValue();
-        setLastSaved(`Last saved: ${getTime()}`);
+        
         console.log("🚀,  file saved.");
       },
     },
@@ -120,16 +149,11 @@ export const Home = () => {
   };
 
   return (
-
-      <BrowserRouter>
-        <Routes>
-          { !user || responseErr || !directory ? 
-          <Route path="/"
-          element={
-            <ErrorPage error={responseErr}/>
-          }>
-          </Route>
-          : 
+    <BrowserRouter>
+      <Routes>
+        {!user || responseErr || !directory ? (
+          <Route path="/" element={<ErrorPage error={responseErr} />}></Route>
+        ) : (
           <Route
             path="/"
             element={
@@ -179,10 +203,10 @@ export const Home = () => {
                 <Terminal {...terminalProps} />
               )
             }
-          ></Route> }
-        </Routes>
-      </BrowserRouter>
-
+          ></Route>
+        )}
+      </Routes>
+    </BrowserRouter>
   );
 };
 

@@ -11,7 +11,7 @@ exports.getChallengeInstruction = async (req, res) => {
     // TODO: append user solutions to challenges..
     try {
         console.log("[DEBUG] Getting challenge instructions. ")
-        const _id = req.user._id._id
+        const _id = req.user?._id._id
         const user = await User.findOne({_id})
         // const challengeRoot = await ChallengeModel.findOne({name:"root", year: currentYear}, {_id:0}).lean() // without id
  
@@ -91,3 +91,29 @@ exports.requestNewChallenge = async (req, res) => {
 // module.exports = {
 //     getFileSystem
 // }
+
+exports.saveChallenge = async (req, res) => {
+
+    try {
+        const _id = req.user._id._id
+        const {level, content} = req.body
+        
+        console.log(level, content)
+        const user = await User.findOne({_id})
+
+        const challenge = user.challenge
+        const challengeFolder = challenge.children.find(child=> child.level === level)
+        const file = challengeFolder.children.find(child=> child.name === 'solution.py')
+        file.content = content
+        user.challenge = challenge
+
+        await user.save()
+
+        res.status(200).json(challenge)
+
+        
+    } catch (error) {
+        res.status(400).json({message: error})
+    }
+
+}

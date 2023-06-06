@@ -27,18 +27,8 @@ router.get('/progress', (req, res) => {
 })
 
 // Save progress
-router.patch('/save/:id', (req, res) => {
-
-    // NOTE: check if id is valid first to avoid error
-    if(!mongoose.Types.ObjectId.isValid(req.params.id)) {
-        console.log("invalid id")
-        return 
-    }
-
-    res.json({
-        msg: "save"
-    })
-})
+router.route('/save')
+    .patch(challengeController.saveChallenge)
 
 // Verify Code
 router.post('/verify/:id', async (req, res) => {

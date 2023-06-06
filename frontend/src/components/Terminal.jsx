@@ -142,11 +142,9 @@ export default function Terminal({openEditor, outputs, setOutputs, previousCmds,
         break
 
       case "cat": {
-
         // TODO: perform cd first??
         // find file name if exist? if not ?
         // file name is arg 
-
         const contents = inputs.map( (arg, index) => {
           if(index === 0) {
             return <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt} cmd={userCommand}/>
@@ -196,9 +194,6 @@ export default function Terminal({openEditor, outputs, setOutputs, previousCmds,
               setCmdPrompt(`foobar:~/${filesystemRootRef.current.name} $ `)
               setOutputs(prevState => [...prevState,
                 <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt}  cmd={userCommand}/>])
-              // setOutputs(prevState => [...prevState,
-              //   <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt}  cmd={userCommand}/>,
-              //   <LsOutput key={nanoid()} contents={directory.children} />])
               return
             }
 
@@ -252,14 +247,10 @@ export default function Terminal({openEditor, outputs, setOutputs, previousCmds,
             if(!shouldTerminate) {
               //REVIEW  CHANGE HERE
               setDirectory(tempDir)
-              // fsRef = tempDir
               setCmdPrompt(`foobar:~/${tempDir.name} $ `)
 
               setOutputs(prevState => [...prevState,
                 <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt}  cmd={userCommand}/>])
-              // setOutputs(prevState => [...prevState,
-              //   <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt}  cmd={userCommand}/>,
-              //   <LsOutput key={nanoid()} contents={tempDir.children} />])
 
             } else {
               setOutputs(prevState => [...prevState,
@@ -278,8 +269,6 @@ export default function Terminal({openEditor, outputs, setOutputs, previousCmds,
           } else {
 
             const file = directory.children.filter(e=>e.name === arg)[0]
-
-            console.log("file is ", file.editable)
 
             if(!file) {
               setOutputs(prevState => [...prevState,
@@ -305,16 +294,19 @@ export default function Terminal({openEditor, outputs, setOutputs, previousCmds,
           break 
 
 
-            // TODO: these commands not supported yet
       case "request":
-        setOutputs(prevState => [...prevState,
-          <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt} cmd={userCommand}/>])
-          requestNewChallenge()
-        break
+          setOutputs(prevState => [...prevState,
+              <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt} cmd={userCommand}/>])
+          
+              requestNewChallenge()
+          break
+              
+        // TODO: these commands not supported yet
       case "status":
         setOutputs(prevState => [...prevState,
           <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt} cmd={userCommand}/>])
         break 
+
       case "submit":
         setOutputs(prevState => [...prevState,
           <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt} cmd={userCommand}/>])

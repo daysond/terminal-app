@@ -38,7 +38,7 @@ const challengeSchema = new Schema({
     }
 }, {_id: false, timestamps: true})
 
-challengeSchema.index({ name: 1, year: 1 }, { unique: true });
+// challengeSchema.index({ name: 1, year: 1 }, { unique: true });
 
 const ChallengeModel = mongoose.model("Challenge", challengeSchema)
 
