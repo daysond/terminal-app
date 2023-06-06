@@ -6,21 +6,20 @@ import { useLogout } from '../hooks/useLogout'
 import '../App.css'
 import { createFS } from '../util/filesystem'
 
-export default function Terminal({openEditor, outputs, setOutputs, previousCmds, setPreviousCmds, filesystemJSON, filesystemRootRef}) {
+export default function Terminal({openEditor, outputs, setOutputs, previousCmds, setPreviousCmds, filesystemRootRef, user, directory, setDirectory}) {
   
     const {logout} = useLogout()
-    const [directory, setDirectory ]= useState(createFS(filesystemJSON, null))
-    const inputReference = useRef(null)
+
+    const inputFieldReference = useRef(null)
     const [userCommand, setUserCommand] = useState("")
     const [currentCmdIdx,  setCurrentCmdIdx] = useState(-1)
     const [cursorIdx, setCursorIdx] = useState(0)
     const [cmdPrompt, setCmdPrompt] = useState(`foobar:~/${directory.name} $ `)
 
-  
       // Handle user command
     const handleChange = (event) => {
     setUserCommand(event.target.value.replace(/\r?\n|\r/g, ""))
-    setCursorIdx(inputReference.current.selectionStart)
+    setCursorIdx(inputFieldReference.current.selectionStart)
     // console.log(event.target.value)
   }
 
@@ -46,7 +45,7 @@ export default function Terminal({openEditor, outputs, setOutputs, previousCmds,
       setUserCommand(previousCmds[newIdx])
 
       const len = previousCmds[newIdx]?.length
-      inputReference.current.setSelectionRange(len, len)
+      inputFieldReference.current.setSelectionRange(len, len)
       setCursorIdx(len)
       
     }
@@ -59,20 +58,20 @@ export default function Terminal({openEditor, outputs, setOutputs, previousCmds,
 
         const len = previousCmds[newIdx]?.length
         if(newIdx !== -1) {
-          inputReference.current.setSelectionRange(len, len)
+          inputFieldReference.current.setSelectionRange(len, len)
           setCursorIdx(len)
           
         }
     }
 
     if(event.key === 'ArrowLeft') {
-      const caretPosition = inputReference.current.selectionStart;
+      const caretPosition = inputFieldReference.current.selectionStart;
       const newPos = caretPosition <= 1 ? 0 : caretPosition - 1
       setCursorIdx(newPos)
     }
 
     if(event.key === 'ArrowRight') {
-      const caretPosition = inputReference.current.selectionStart;
+      const caretPosition = inputFieldReference.current.selectionStart;
       const newPos = caretPosition >= userCommand.length ? userCommand.length : caretPosition + 1
       setCursorIdx(newPos)
     }
@@ -88,27 +87,33 @@ export default function Terminal({openEditor, outputs, setOutputs, previousCmds,
 
 
  const focusTextArea = () => {
-    inputReference.current.focus()
+    inputFieldReference.current.focus()
   }
 
-  const requestNewChallenge = () => {
+  const requestNewChallenge = async () => {
 
     const requestOptions = {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'authorization': `Bearer ${user?.token}` 
+      },
     }
     
-    //TODO: ASYNC ? VALIDATE RES? is user able to request new challenge?
-     fetch('/api/challenge/request', requestOptions)
-    .then(res=>res.json())
-    .then(json=>{
+    const response = await fetch("/api/challenge/request", requestOptions)
 
-      const tempFs = filesystemJSON
-      tempFs.children.push(json)
-      setDirectory(createFS(tempFs, null))
-
-    })
-  
+    const json = await response.json()
+      
+    if(response.ok) {
+      // setFilesystemJSON(json)
+      setDirectory(createFS(json, null))
+    } else {
+      //TODO: SET JSON
+      setOutputs(prevState => [...prevState,
+            <InvalidOutputMsg key={nanoid()} cmd={"Request error"} msg={json.message} />])
+      console.log(json)
+    }
+    
 }
 
   const response = () => {
@@ -117,7 +122,7 @@ export default function Terminal({openEditor, outputs, setOutputs, previousCmds,
     const cmd = inputs[0]
     const arg = inputs[1]
 
-    console.log(arg)
+    console.log("Arg: ", arg)
     switch (cmd) {
       case "clear":
         setOutputs([])
@@ -272,22 +277,29 @@ export default function Terminal({openEditor, outputs, setOutputs, previousCmds,
                 <InvalidOutputMsg key={nanoid()} cmd={userCommand} msg={"No such file or directory"} />])
           } else {
 
-            const file = directory.children.filter(e=>e.name === arg)
+            const file = directory.children.filter(e=>e.name === arg)[0]
 
-            if(!file.length) {
+            console.log("file is ", file.editable)
+
+            if(!file) {
               setOutputs(prevState => [...prevState,
                 <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt}  cmd={userCommand}/>,
                 <InvalidOutputMsg key={nanoid()} cmd={cmd} msg={`${arg}: No such file or directory`} />])
 
-            } else if (file[0].isFolder) {
+            } else if (file.isFolder) {
               setOutputs(prevState => [...prevState,
                 <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt} cmd={userCommand}/>,
                 <InvalidOutputMsg key={nanoid()} cmd={cmd} msg={`${arg} is a directory`} />])
   
+            } else if (!file.editable) {
+              setOutputs(prevState => [...prevState,
+                <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt} cmd={userCommand}/>,
+                <InvalidOutputMsg key={nanoid()} cmd={cmd} msg={`${arg} is not editable`} />])
+
             } else {
               setOutputs(prevState => [...prevState,
                 <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt} cmd={userCommand}/>])
-                openEditor(file[0])
+                openEditor(file)
             }
           }
           break 
@@ -366,7 +378,7 @@ export default function Terminal({openEditor, outputs, setOutputs, previousCmds,
             value={userCommand}
             onKeyDown={handleKeyDown}
             onChange={handleChange}
-            ref={inputReference}
+            ref={inputFieldReference}
             style={{left: '150px', top: '350px', width: '70px', height: '56px'}}
             autoFocus />
         </div>

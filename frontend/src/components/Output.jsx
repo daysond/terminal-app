@@ -1,7 +1,7 @@
 import { nanoid } from "nanoid"
 
 export const WelcomeBanner = () => {
-    const banner = `
+    let banner = `
                                                                                     \n
     SSSSSSSSSSSSSSS EEEEEEEEEEEEEEEEEEEEEE   SSSSSSSSSSSSSSS    SSSSSSSSSSSSSSS     \n
     SS:::::::::::::::SE::::::::::::::::::::E SS:::::::::::::::S SS:::::::::::::::S  \n
@@ -19,6 +19,16 @@ export const WelcomeBanner = () => {
    S::::::SSSSSS:::::SE::::::::::::::::::::ES::::::SSSSSS:::::SS::::::SSSSSS:::::S  \n
    S:::::::::::::::SS E::::::::::::::::::::ES:::::::::::::::SS S:::::::::::::::SS   \n
     SSSSSSSSSSSSSSS   EEEEEEEEEEEEEEEEEEEEEE SSSSSSSSSSSSSSS    SSSSSSSSSSSSSSS     \n
+    `
+
+    banner = `                                                          
+    .oooooo..o    oooooooooooo     .oooooo..o     .oooooo..o            
+    d8P\'    \`Y8    \`888\'     \`8    d8P'    \`Y8    d8P\'    \`Y8           
+    Y88bo.          888            Y88bo.         Y88bo.                
+     \`\"Y8888o.      888oooo8        \`\"Y8888o.      \`\"Y8888o.            
+         \`\"Y88b     888    \"            \`\"Y88b         \`\"Y88b           
+    oo     .d8P     888       o    oo     .d8P    oo     .d8P           
+    8\"\"88888P'     o888ooooood8    8\"\"88888P'     8\"\"88888P\'            
     `
 
     const elements = banner.split('\n').map(e=> <p key={nanoid()} style={{ whiteSpace: 'pre', color: 'red' }}>{e}</p>)
@@ -65,7 +75,7 @@ export const InvalidOutputMsg = ({cmd, msg}) => {
 
 export const LsOutput = ({contents}) => {
 
-    const fileElements = contents.map(element =>
+    const fileElements = contents?.map(element =>
         <span key={nanoid()} className={element.isFolder ? "term-yellow block-span" : "block-span"}>{element.name}</span>
     )
 

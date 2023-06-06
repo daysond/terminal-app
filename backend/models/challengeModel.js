@@ -30,15 +30,17 @@ const challengeSchema = new Schema({
     },
     content: {
         type: String,
-        required: true
+        required: false
     },
     children: {
       type: [this],
       required: false  
     }
-})
+}, {_id: false, timestamps: true})
 
 challengeSchema.index({ name: 1, year: 1 }, { unique: true });
 
-module.exports = mongoose.model("Challenge", challengeSchema)
+const ChallengeModel = mongoose.model("Challenge", challengeSchema)
+
+module.exports = {challengeSchema, ChallengeModel}
 

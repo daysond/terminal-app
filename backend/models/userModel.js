@@ -2,38 +2,10 @@ const mongoose = require('mongoose')
 const bcrypt = require('bcrypt')
 const validator = require('validator') 
 
+const {challengeSchema, ChallengeModel} = require('./challengeModel')
+const currentYear = new Date().getFullYear();
+
 const Schema = mongoose.Schema
-
-const solutionSchema = new Schema({
-
-    name: {
-        type: String,
-        required: true
-    },
-    level: {
-        type: String,
-        required: true
-      },
-    year: {
-        type: Number,
-        required: false
-    },
-
-    code: {
-        type: String,
-        required: true
-    },
-    passed: {
-        type: Boolean,
-        default: false,
-        required: true
-    },
-    submitted: {
-        type: Boolean,
-        default: false,
-        required: true
-    }
-})
 
 const userSchema = new Schema({
     email: {
@@ -49,13 +21,22 @@ const userSchema = new Schema({
         type: Number,
         required: true
     },
-    solutions: [solutionSchema]
+    status: {
+        type: String,
+        required: true,
+        enum: ['new', 'started' ,'passed', 'failed', 'completed'],
+        default: "new"
+    },
+    challenge: {
+        type: challengeSchema,
+        required: true
+    }
 }, {timestamps: true})
 
 // MARK: ------ static methods ------
 
 userSchema.statics.signup = async function(email, password) {
-
+    console.log("[debug] about to signing up")
     // input validation
     if(!email || !password) {
         throw Error('All fields must be filled.')
@@ -83,7 +64,9 @@ userSchema.statics.signup = async function(email, password) {
     const salt = await bcrypt.genSalt(10)
     const hash = await bcrypt.hash(password, salt)
 
-    const user = await this.create({email, password: hash, level: 0, solutions: []})
+
+    const challengeRoot = await ChallengeModel.findOne({name:"root", year: currentYear}, {_id:0}).lean()
+    const user = await this.create({email, password: hash, level: 0, challenge: challengeRoot})
 
     return user
 

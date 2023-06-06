@@ -12,41 +12,58 @@ import Terminal from "../components/Terminal";
 import { getOperatingSystem, getTime } from "../util/OS";
 import { absRoot, createFS } from "../util/filesystem";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { useAuthContext } from "../hooks/useAuthContext";
+import { ErrorPage } from "./ErrorPage";
+import { useLogout } from '../hooks/useLogout'
 
 export const Home = () => {
-  const [os, setOS] = useState("Unknown");
-  // Terminal States
-  // const fsRef = useRef(root)
-  const filesystemRootRef = useRef(absRoot);
 
+  const [os, setOS] = useState("Unknown");
+
+  const {logout} = useLogout()
   const [outputs, setOutputs] = useState([]);
   const [previousCmds, setPreviousCmds] = useState([]);
+  const filesystemRootRef = useRef(absRoot);
+  // REVIEW:  get file system before home is loaded..?
+  // TODO: CHANGE NEEDED
 
-  //NOTE: ??
-  const [filesystemJSON, setFilesystemJSON] = useState(null);
+  const [directory, setDirectory ]= useState(null)
+  const [responseErr, setResponseErr] = useState(null)
+
+  const {user} = useAuthContext()
 
   useEffect(() => {
     setOutputs([<WelcomeBanner key={nanoid()} />]);
     setOS(getOperatingSystem(window));
 
     const fetchFileSystem = async () => {
-      //TODO: VAlidate res ???
-      await fetch("/api/challenge/")
-        .then((res) => res.json())
-        .then((json) => {
-          console.log("[DEBUG] Got challenges")
-          setFilesystemJSON(json);
-          
-        });
+  
+      const response = await fetch("/api/challenge/", {
+        headers: {
+          'authorization': `Bearer ${user?.token}`
+        }
+      })
 
-      // if(res.ok) {
-      //   console.log(json)
-      //   // setFS(fs)
-      // }
-    };
+      const json = await response.json()
+      
+      if(response.ok) {
+        console.log("[DEBUG] Got challenges")
+        // setFilesystemJSON(json)
+        setDirectory(createFS(json, null))
+      } else {
+        setResponseErr({
+          status: response.status,
+          message: json.message,
+          action: logout,
+          actionName: ' Go Home '
+        })
+      }
+    }
 
-    fetchFileSystem();
-  }, []);
+    if(user) {
+      fetchFileSystem()
+    } 
+  }, [user]);
 
   //MARK: Editor States
   const [editorMode, setEditorMode] = useState(false);
@@ -59,6 +76,7 @@ export const Home = () => {
   };
 
   const updateEidtorFile = (value) => {
+    console.log("file ", value)
     setEditorMode(true);
     setEditorFile(value);
     setEditorText(value.content);
@@ -80,6 +98,7 @@ export const Home = () => {
       bindKey: { win: "Ctrl-S", mac: "Cmd-S" },
       exec: (editor) => {
         console.log(editor.getValue());
+        console.log(editorFile._id)
         editorFile.content = editor.getValue();
         setLastSaved(`Last saved: ${getTime()}`);
         console.log("🚀,  file saved.");
@@ -94,15 +113,23 @@ export const Home = () => {
     setOutputs: setOutputs,
     previousCmds: previousCmds,
     setPreviousCmds: setPreviousCmds,
-    // requestNewChallenge: requestNewChallenge,
-    filesystemJSON: filesystemJSON,
+    directory: directory,
+    setDirectory: setDirectory,
     filesystemRootRef: filesystemRootRef,
+    user: user,
   };
 
   return (
-    filesystemJSON && (
+
       <BrowserRouter>
         <Routes>
+          { !user || responseErr || !directory ? 
+          <Route path="/"
+          element={
+            <ErrorPage error={responseErr}/>
+          }>
+          </Route>
+          : 
           <Route
             path="/"
             element={
@@ -152,10 +179,10 @@ export const Home = () => {
                 <Terminal {...terminalProps} />
               )
             }
-          ></Route>
+          ></Route> }
         </Routes>
       </BrowserRouter>
-    )
+
   );
 };
 

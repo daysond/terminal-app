@@ -8,13 +8,16 @@ const challengeController = require('../controllers/challengeController')
 
 const router = express.Router()
 
-// TODO: checking for user authentication
+// checking for user authentication
+// auth protect for all routes
+router.use(auth)
+
 router.route('/')
-    .get(auth, challengeController.getChallengeInstruction)
+    .get(challengeController.getChallengeInstruction)
 
 // Request single challenge
 router.route('/request')
-    .post(auth, challengeController.requestNewChallenge)
+    .post(challengeController.requestNewChallenge)
 
 // Get progress
 router.get('/progress', (req, res) => {

@@ -1,0 +1,16 @@
+.error-title{
+    color:red;
+}
+
+.error-code {
+    color:orange;
+    font-size: 64px;
+    margin: 0px auto 40px auto;
+}
+
+.error-message {
+    color:cadetblue;
+    font-size: 30px;
+    margin-right: 5px;
+    display: inline-block;
+}
