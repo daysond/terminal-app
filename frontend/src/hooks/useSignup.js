@@ -24,23 +24,28 @@ export const useSignup = () => {
             body: JSON.stringify({email, password})
         })
 
-        const json = await response.json()
-
-        if(!response.ok) {
-            setIsLoading(false)
-            setError(json.error)
-        
-        } else {
+        try {
+            const json = await response.json()
+    
+            if(!response.ok) {
+                setIsLoading(false)
+                setError(json.error)
             
-            // save the user to local storage 
-            // TODO: Change it to redis ??
-            localStorage.setItem('user', JSON.stringify(json))
+            } else {
+                // save the user to local storage 
+                // TODO: Change it to redis ??
+                localStorage.setItem('user', JSON.stringify(json))
+                
+                // update auth context
+                dispatch({type:"logged_in", payload: json})
+                setIsLoading(false)
+            }
             
-            // update auth context
-            dispatch({type:"logged_in", payload: json})
-
+        } catch (error) {
             setIsLoading(false)
+            setError(`${response.status}: ${response.statusText}`)
         }
+
     }
 
     return {signup, isLoading, error}

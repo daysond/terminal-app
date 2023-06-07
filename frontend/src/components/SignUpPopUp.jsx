@@ -80,7 +80,7 @@ const SignUpPopup = ({ isOpen, onClose }) => {
 
         <div className='auth-form-button-grp'>
             <button disabled={isLoading} className='auth-button bracket-button sign-up-button' type="submit"> {"Sign Up"}</button>
-            <button className="auth-button bracket-button close-button" onClick={clearData}>{"Cancel"}</button>
+            <button className="auth-button bracket-button close-button" type='button' onClick={clearData}>{"Cancel"}</button>
         </div>
         </form>
       </div>

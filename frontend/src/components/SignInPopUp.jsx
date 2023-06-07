@@ -63,7 +63,7 @@ const SignInPopup = ({ isOpen, onClose }) => {
 
         <div className='auth-form-button-grp'>
             <button disabled={isLoading} className='auth-button bracket-button sign-in-button' type="submit"> {"Sign In"}</button>
-            <button className="auth-button close-button bracket-button" onClick={clearData}>{"Cancel"}</button>
+            <button className="auth-button close-button bracket-button" type='button' onClick={clearData}>{"Cancel"}</button>
         </div>
         </form>
       </div>
