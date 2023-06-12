@@ -9,11 +9,11 @@ services:
       args:
         NODE_ENV: development
     volumes:
-      - ./:/app:ro
+      - ./backend:/app:ro
       - /app/node_modules
     environment:
       - NODE_ENV=production
-      - MONGO_URI=${MONGO_URI}
-      - JWT_SECRET=${JWT_SECRET}
+      - MONGO_URI=mongodb+srv://dbUser:123456abcd@cluster0.i80yzc0.mongodb.net/?retryWrites=true&w=majority
+      - JWT_SECRET=j3n23c6vdbE3129AX%edsaW9ac@oP4qFtR5gKl0sM
 
     command: npm run dev

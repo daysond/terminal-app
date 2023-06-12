@@ -5,7 +5,7 @@ services:
     ports:
       - "4000:80"
     volumes:
-      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./backend/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
   
   api-server:
     build: ./backend
@@ -19,12 +19,12 @@ services:
   redis-server:
     image: "redis"
     restart: always
-  server:
+  code-engine-server:
     build: ./code-engine
     restart: always
     ports:
       - "5001:5001"
-  worker:
+  code-engine-worker:
     build: ./code-engine-workers
     restart: always
     pids_limit: 60 # Max number of processes running in thw container.

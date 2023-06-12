@@ -126,7 +126,7 @@ exports.submitChallenge = async (req, res) => {
         const challengeLevel = req.body.level
         const submissionCode = req.body.code
 
-        console.log(submissionCode)
+        // console.log(submissionCode)
 
         const requestOptions = {
             method: 'POST',
@@ -142,14 +142,33 @@ exports.submitChallenge = async (req, res) => {
             }	)
           }
           
-          const response = await fetch("http://0.0.0.0:5001/submit", requestOptions)
-          const json = await response.json()
+        const response = await fetch("http://code-engine-server:5001/submit", requestOptions)
+        const json = await response.json()
+        const {status, data} = json
+        console.log("got res, json", status, data)
+        // {
+        //     status: 'ok',
+        //     data: 'http://localhost:5001/results/5b17bb811ce012aa6c49'
+        //   }
+        let statusCode = 0
 
-          console.log("got res, json")
+        const fetchResult = async () => {
+            const result = await fetch(data)
+            const resultJson = await result.json()
+            statusCode = result.status
+            console.log(resultJson, statusCode)
+            if (statusCode === 200 || statusCode === 500) {
+                res.status(200).json(resultJson)
+            } else {
+                setTimeout(fetchResult, 500)
+            }
+        }
+          
+        fetchResult()
         //remote-code-execution-engine-server
         
-        
-        res.status(200).json({message: " got code"})
+        // console.log("hello??")
+        // res.status(200).json({message: " got code"})
        
 
     } catch (error) {
