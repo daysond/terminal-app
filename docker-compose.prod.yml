@@ -1,9 +1,9 @@
-version: "3"
+version: "2.3"
 services:
   nginx:
     ports:
       - "80:80"
-  foobar-app:
+  api-server:
     deploy:
       replicas: 4
       restart_policy:
@@ -14,7 +14,7 @@ services:
         failure_action: rollback
         delay: 10s
     build:
-      context: .
+      context: ./backend
       args:
         NODE_ENV: production  
     environment:
@@ -22,3 +22,5 @@ services:
       - MONGO_URI=${MONGO_URI}
       - JWT_SECRET=${JWT_SECRET}
     command: npm start
+
+

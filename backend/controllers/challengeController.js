@@ -117,3 +117,44 @@ exports.saveChallenge = async (req, res) => {
     }
 
 }
+
+exports.submitChallenge = async (req, res) => {
+
+    try {
+        const _id = req.user._id._id
+        const user = await User.findOne({_id})
+        const challengeLevel = req.body.level
+        const submissionCode = req.body.code
+
+        console.log(submissionCode)
+
+        const requestOptions = {
+            method: 'POST',
+            headers: { 
+              'Content-Type': 'application/json',
+              'authorization': `Bearer ${user?.token}` 
+            },
+            body: JSON.stringify({
+                src: submissionCode,
+                stdin:"",
+                lang:"python3",
+                timeout:5
+            }	)
+          }
+          
+          const response = await fetch("http://0.0.0.0:5001/submit", requestOptions)
+          const json = await response.json()
+
+          console.log("got res, json")
+        //remote-code-execution-engine-server
+        
+        
+        res.status(200).json({message: " got code"})
+       
+
+    } catch (error) {
+        console.log(error)
+        res.status(400).json({error: error.message})
+    }
+
+}

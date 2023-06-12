@@ -90,6 +90,8 @@ export default function Terminal({openEditor, outputs, setOutputs, previousCmds,
     inputFieldReference.current.focus()
   }
 
+  //MARK: ---------- API HELPERS ----------
+
   const requestNewChallenge = async () => {
 
     const requestOptions = {
@@ -114,8 +116,44 @@ export default function Terminal({openEditor, outputs, setOutputs, previousCmds,
       console.log(json)
     }
     
-}
+  }
 
+  const submitChallenge = async (file) => {
+
+    const level = file.parent.level
+    const code = file.content
+
+    console.log("submiting", code)
+
+    const requestOptions = {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'authorization': `Bearer ${user?.token}` 
+      },
+      body: JSON.stringify({level, code})
+    }
+    
+    const response = await fetch("/api/challenge/submit", requestOptions)
+
+    const json = await response.json()
+      
+    if(response.ok) {
+      console.log(json)
+      setOutputs(prevState => [...prevState,
+        <InvalidOutputMsg key={nanoid()} cmd={"Submite error"} msg={json} />])
+    } else {
+      //TODO: SET JSON
+      setOutputs(prevState => [...prevState,
+            <InvalidOutputMsg key={nanoid()} cmd={"Submite error"} msg={json} />])
+      console.log(json)
+    }
+
+  }
+
+
+
+  //MARK: --------------------------------
   const response = () => {
     console.log(`[${userCommand}]`)
     const inputs = userCommand.trimStart().split(" ").filter(e => e != "")
@@ -298,7 +336,7 @@ export default function Terminal({openEditor, outputs, setOutputs, previousCmds,
           setOutputs(prevState => [...prevState,
               <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt} cmd={userCommand}/>])
           
-              requestNewChallenge()
+          requestNewChallenge()
           break
               
         // TODO: these commands not supported yet
@@ -308,9 +346,38 @@ export default function Terminal({openEditor, outputs, setOutputs, previousCmds,
         break 
 
       case "submit":
-        setOutputs(prevState => [...prevState,
-          <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt} cmd={userCommand}/>])
-        break
+          // TODO: REFACTOR CODE ... SAME CODE AS EDIT, only solution.py is submittable, check name?
+        if(!arg) {
+          setOutputs(prevState => [...prevState,
+            <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt}  cmd={userCommand}/>,
+            <InvalidOutputMsg key={nanoid()} cmd={userCommand} msg={"No such file or directory"} />])
+        } else {
+
+          const file = directory.children.filter(e=>e.name === arg)[0]
+
+          if(!file) {
+            setOutputs(prevState => [...prevState,
+              <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt}  cmd={userCommand}/>,
+              <InvalidOutputMsg key={nanoid()} cmd={cmd} msg={`${arg}: No such file or directory`} />])
+
+          } else if (file.isFolder) {
+            setOutputs(prevState => [...prevState,
+              <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt} cmd={userCommand}/>,
+              <InvalidOutputMsg key={nanoid()} cmd={cmd} msg={`${arg} is a directory`} />])
+
+          } else if (!file.editable) {
+            setOutputs(prevState => [...prevState,
+              <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt} cmd={userCommand}/>,
+              <InvalidOutputMsg key={nanoid()} cmd={cmd} msg={`${arg} is not submitable`} />])
+
+          } else {
+            setOutputs(prevState => [...prevState,
+              <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt} cmd={userCommand}/>])
+              submitChallenge(file)
+          }
+        }
+        break 
+
       case "verify":
         setOutputs(prevState => [...prevState,
           <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt} cmd={userCommand}/>])

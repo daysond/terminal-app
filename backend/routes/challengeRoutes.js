@@ -19,6 +19,16 @@ router.route('/')
 router.route('/request')
     .post(challengeController.requestNewChallenge)
 
+// Submit Code
+router.route('/submit')
+    .post(challengeController.submitChallenge) 
+
+
+// Save file
+router.route('/save')
+    .patch(challengeController.saveChallenge)
+
+
 // Get progress
 router.get('/progress', (req, res) => {
     res.json({
@@ -26,9 +36,6 @@ router.get('/progress', (req, res) => {
     })
 })
 
-// Save progress
-router.route('/save')
-    .patch(challengeController.saveChallenge)
 
 // Verify Code
 router.post('/verify/:id', async (req, res) => {
@@ -46,12 +53,6 @@ router.post('/verify/:id', async (req, res) => {
     })
 })
 
-// Submit Code
-router.post('/submit/:id', (req, res) => {
-    res.json({
-        msg: "submit"
-    })
-})
 
 
 module.exports = router
