@@ -102,7 +102,7 @@ export default function Terminal({openEditor, outputs, setOutputs, previousCmds,
       },
     }
     
-    const response = await fetch("/api/challenge/request", requestOptions)
+    const response = await fetch("http://localhost:4000/api/challenge/request", requestOptions)
 
     const json = await response.json()
       
@@ -134,12 +134,13 @@ export default function Terminal({openEditor, outputs, setOutputs, previousCmds,
       body: JSON.stringify({level, code})
     }
     
-    const response = await fetch("/api/challenge/submit", requestOptions)
+    const response = await fetch("http://localhost:4000/api/challenge/submit", requestOptions)
 
     const json = await response.json()
       
     if(response.ok) {
       console.log(json)
+      file.editable = false
       setOutputs(prevState => [...prevState,
         <InvalidOutputMsg key={nanoid()} cmd={"Submite error"} msg={json} />])
     } else {

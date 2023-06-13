@@ -42,16 +42,7 @@ exports.requestNewChallenge = async (req, res) => {
         // can request new solution? append solution to user list and save solution also new user level
         if(userEligible) {
             const newChallenge = await ChallengeModel.findOne({level: newLevel, year: currentYear}, {_id:0}).lean()
-            
-            // const newSolution = new Solution({
-            //     name: newChallenge.name,
-            //     level: newChallenge.level,
-            //     year: newChallenge.year,
-            //     parentID: req.user._id,
-            //     code: '# Your solution here \n def solution():',
-            //     passed:true, //TODO: CHANGE IT TO FALSE 
-            //     submitted: true // TODO: CHANGE IT TO FALSE
-            // })
+            // TODO: completed condition ?
 
             user.challenge.children.push(newChallenge)
             user.level = newLevel
@@ -142,7 +133,10 @@ exports.submitChallenge = async (req, res) => {
             }	)
           }
           
-        const response = await fetch("http://code-engine-server:5001/submit", requestOptions)
+        //MARK: ---------- Code Engine API Call ----------
+        // TODO: CHANGE IT BACK TO SERVICE IN PROD
+        // const response = await fetch("http://code-engine-server:5001/submit", requestOptions)
+        const response = await fetch("http://localhost:5001/submit", requestOptions) // REVIEW: USED FOR DEV
         const json = await response.json()
         const {status, data} = json
         console.log("got res, json", status, data)
@@ -151,25 +145,50 @@ exports.submitChallenge = async (req, res) => {
         //     data: 'http://localhost:5001/results/5b17bb811ce012aa6c49'
         //   }
         let statusCode = 0
-
+          // Getting Code Running result
         const fetchResult = async () => {
-            const result = await fetch(data)
-            const resultJson = await result.json()
-            statusCode = result.status
-            console.log(resultJson, statusCode)
-            if (statusCode === 200 || statusCode === 500) {
-                res.status(200).json(resultJson)
-            } else {
-                setTimeout(fetchResult, 500)
-            }
+
+            fetch(data).then(result => {
+                statusCode = result.status
+                console.log(statusCode)
+                if (statusCode === 200) {
+                    return result.json();
+                  } else if (statusCode === 500) {
+                    throw new Error('System Error.');
+                  } else {
+                    throw new Error('Unknown status code.');
+                  }
+            }).then( async resultJson => {
+                const output = resultJson.data.output.trim()
+                user.status = output
+
+                // MARK: REPEATED CODE, marking file not editable aka submitable
+                // REVIEW: on client end, editable is not synced.
+                const challenge = user.challenge
+                const challengeFolder = challenge.children.find(child=> child.level === challengeLevel)
+                const file = challengeFolder.children.find(child=> child.name === 'solution.py')
+                file.editable = false
+                user.challenge = challenge
+
+                await user.save()
+                console.log("user saved")
+                return output
+                // res.status(200).json({result: "123"})
+            }).then(output => {
+                console.log("output ", output)
+                res.status(200).json({result: output})
+
+            }).catch(error => {
+                // status code 202
+                 if (error.message === 'Unknown status code.') {
+                    setTimeout(fetchResult, 500);
+                } else {
+                    res.status(500).json({ message: 'System Error.' });
+                } 
+            })
         }
           
         fetchResult()
-        //remote-code-execution-engine-server
-        
-        // console.log("hello??")
-        // res.status(200).json({message: " got code"})
-       
 
     } catch (error) {
         console.log(error)
