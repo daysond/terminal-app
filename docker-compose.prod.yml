@@ -1,18 +1,18 @@
-version: "2.3"
+version: "3"
 services:
-  # nginx:
-  #   ports:
-  #     - "80:80"
+  nginx:
+    ports:
+      - "80:80"
   api-server:
-    # deploy:
-    #   replicas: 4
-    #   restart_policy:
-    #     condition: on-failure
-    #     max_attempts: 3
-    #   update_config:
-    #     parallelism: 2
-    #     failure_action: rollback
-    #     delay: 10s
+    deploy:
+      replicas: 4
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
+      update_config:
+        parallelism: 2
+        failure_action: rollback
+        delay: 10s
     build:
       context: ./backend
       args:
