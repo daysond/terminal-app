@@ -1,8 +1,8 @@
 version: "2.3"
 services:
-  nginx:
-    ports:
-      - "80:80"
+  # nginx:
+  #   ports:
+  #     - "80:80"
   api-server:
     deploy:
       replicas: 4
