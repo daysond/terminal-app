@@ -12,25 +12,38 @@ services:
     image: api-server
     environment:
       - PORT=4000
+    networks:
+      - foobar-api
     # ports:
     #   - "4000:4000"
   rabbitmq:
     image: "rabbitmq"
     restart: always
+    networks:
+      - foobar-api
+
   redis-server:
     image: "redis"
     restart: always
+    networks:
+      - foobar-api
+
   code-engine-server:
     build: ./code-engine
     restart: always
     ports:
       - "5001:5001"
+    networks:
+      - foobar-api
+
   code-engine-worker:
     build: ./code-engine-workers
     restart: always
     pids_limit: 60 # Max number of processes running in thw container.
     cpus: 1 # No of CPUs allocated
     mem_limit: 150M # Hard limit
+    networks:
+      - foobar-api
 
   foobar-app:
     build: ./frontend
@@ -41,3 +54,9 @@ services:
       - 3000:80
     depends_on:
       - nginx
+    networks:
+      - foobar-api
+
+networks:
+  foobar-api:
+    driver: bridge
