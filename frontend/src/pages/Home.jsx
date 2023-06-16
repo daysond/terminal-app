@@ -15,6 +15,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useAuthContext } from "../hooks/useAuthContext";
 import { ErrorPage } from "./ErrorPage";
 import { useLogout } from "../hooks/useLogout";
+import { MountingPrompt, HighlightedText } from "../command";
 
 export const Home = () => {
   const [os, setOS] = useState("Unknown");
@@ -26,17 +27,21 @@ export const Home = () => {
   // REVIEW:  get file system before home is loaded..?
   // TODO: CHANGE NEEDED
 
-  const [directory, setDirectory] = useState(null);
-  const [responseErr, setResponseErr] = useState(null);
+  const [directory, setDirectory] = useState(null)
+  const [responseErr, setResponseErr] = useState(null)
 
-  const { user } = useAuthContext();
+  const { user } = useAuthContext()
+  const username = user.email.split("@")[0]
 
   useEffect(() => {
-    setOutputs([<WelcomeBanner key={nanoid()} />]);
+    setOutputs([
+      <WelcomeBanner key={nanoid()} />,
+      <MountingPrompt key={nanoid()} username={username} />
+    ]);
     setOS(getOperatingSystem(window));
 
     const fetchFileSystem = async () => {
-      const response = await fetch("http://159.203.11.15:4000/api/challenge/", {
+      const response = await fetch("http://localhost:4000/api/challenge/", {
         headers: {
           authorization: `Bearer ${user?.token}`,
         },
@@ -45,9 +50,12 @@ export const Home = () => {
       const json = await response.json();
 
       if (response.ok) {
-        console.log("[DEBUG] Got challenges ", json);
+        // console.log("[DEBUG] Got challenges ", json);
         // setFilesystemJSON(json)
         setDirectory(createFS(json, null));
+        setOutputs(prev => [...prev,
+          <HighlightedText key={nanoid()} text={json.children.filter(e=>e.name === "journal.txt")[0].content} />
+        ])
       } else {
         setResponseErr({
           status: response.status,
@@ -59,6 +67,7 @@ export const Home = () => {
     };
 
     if (user) {
+      console.log("calling fetch ", user)
       fetchFileSystem();
     }
   }, [user]);
@@ -93,7 +102,10 @@ export const Home = () => {
       body: JSON.stringify({ content: content, level: level }),
     };
 
-    const response = await fetch("http://159.203.11.15:4000/api/challenge/save", requestOptions);
+    const response = await fetch(
+      "http://localhost:4000/api/challenge/save",
+      requestOptions
+    );
 
     const json = await response.json();
 
@@ -124,12 +136,12 @@ export const Home = () => {
       name: "save",
       bindKey: { win: "Ctrl-S", mac: "Cmd-S" },
       exec: (editor) => {
-        const content = editor.getValue()
-        const level = editorFile.parent.level
-        savefile(level, content)
+        const content = editor.getValue();
+        const level = editorFile.parent.level;
+        savefile(level, content);
         // console.log(editorFile.parent.level)
         editorFile.content = editor.getValue();
-        
+
         console.log("🚀,  file saved.");
       },
     },
@@ -138,73 +150,69 @@ export const Home = () => {
   //MARK: Props
   const terminalProps = {
     openEditor: updateEidtorFile,
-    outputs: outputs,
-    setOutputs: setOutputs,
-    previousCmds: previousCmds,
-    setPreviousCmds: setPreviousCmds,
-    directory: directory,
-    setDirectory: setDirectory,
-    filesystemRootRef: filesystemRootRef,
-    user: user,
+    outputs,
+    setOutputs,
+    previousCmds,
+    setPreviousCmds,
+    directory,
+    setDirectory,
+    filesystemRootRef,
+    user,
   };
 
   return (
     <BrowserRouter>
       <Routes>
-        {!user || responseErr || !directory ? (
+        {/* {!user || responseErr || !directory ? (
           <Route path="/" element={<ErrorPage error={responseErr} />}></Route>
-        ) : (
-          <Route
-            path="/"
-            element={
-              editorMode ? (
-                <Split
-                  sizes={[50, 50]}
-                  direction="horizontal"
-                  className="split"
-                >
-                  <Terminal {...terminalProps} />
-                  <div className="editor">
-                    {editorFile.name !== undefined && (
-                      <div className="editor-header shadow">
-                        <p className="editor-filename">{editorFile.name}</p>
-                        <p className="editor-filename">{lastSaved}</p>
-                      </div>
-                    )}
-                    <AceEditor
-                      height="100vh"
-                      width="100%"
-                      mode="python"
-                      theme="monokai"
-                      wrapEnabled={true}
-                      showPrintMargin={false}
-                      cursorStart={3}
-                      setOptions={{
-                        enableBasicAutocompletion: true,
-                        enableLiveAutocompletion: true,
-                        enableSnippets: true,
-                      }}
-                      commands={editorCommands}
-                      focus={true}
-                      value={editorText}
-                      defaultValue={editorFile.content}
-                      onChange={handleEditorChange}
-                    />
-                    <div className="editor-footer">
-                      <p className="editor-cmd">
-                        {" "}
-                        [Save] {os === "Mac" ? "Cmd+S" : "Ctrl+S"} [Close]{" "}
-                        {os === "Mac" ? "Cmd+E" : "Ctrl+E"}{" "}
-                      </p>
-                    </div>
-                  </div>
-                </Split>
-              ) : (
+        ) : ( */}
+        <Route
+          path="/"
+          element={
+            editorMode ? (
+              <Split sizes={[50, 50]} direction="horizontal" className="split">
                 <Terminal {...terminalProps} />
-              )
-            }
-          ></Route>
-        )}
+                <div className="editor">
+                  {editorFile.name !== undefined && (
+                    <div className="editor-header shadow">
+                      <p className="editor-filename">{editorFile.name}</p>
+                      <p className="editor-filename">{lastSaved}</p>
+                    </div>
+                  )}
+                  <AceEditor
+                    height="100vh"
+                    width="100%"
+                    mode="python"
+                    theme="monokai"
+                    wrapEnabled={true}
+                    showPrintMargin={false}
+                    cursorStart={3}
+                    setOptions={{
+                      enableBasicAutocompletion: true,
+                      enableLiveAutocompletion: true,
+                      enableSnippets: true,
+                    }}
+                    commands={editorCommands}
+                    focus={true}
+                    value={editorText}
+                    defaultValue={editorFile.content}
+                    onChange={handleEditorChange}
+                  />
+                  <div className="editor-footer">
+                    <p className="editor-cmd">
+                      {" "}
+                      [Save] {os === "Mac" ? "Cmd+S" : "Ctrl+S"} [Close]{" "}
+                      {os === "Mac" ? "Cmd+E" : "Ctrl+E"}{" "}
+                    </p>
+                  </div>
+                </div>
+              </Split>
+            ) : (
+              <Terminal {...terminalProps} />
+            )
+          }
+        ></Route>
+        {/* )} */}
       </Routes>
     </BrowserRouter>
   );

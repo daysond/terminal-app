@@ -5,7 +5,8 @@ import { useAuthContext } from "./hooks/useAuthContext";
 
 function App() {
   const { user } = useAuthContext();
-
+  
+  console.log("rendering app")
   return (
     // <ErrorPage />
     user ?  <Home /> : <AuthPage />

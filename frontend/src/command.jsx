@@ -32,4 +32,45 @@ export const help = [
     </div>
   )
 
-//  export const invalid = 
+  export const verifyCode = `<p> Type  <span class="command">request</span>  to request a challenge.</p>`
+
+  export const MountingPrompt = ({username}) => {
+    return (
+      <div className="cmd-group">
+        <p> Mounting  <span className="command">/home/{username}...</span></p>
+        <p><span className="term-redorange">Welcome to SESS Foobar Challenge 2023.</span></p>
+      </div>
+    )
+  }
+
+  export const HighlightedText = ({text}) => {
+    return (
+      <div >
+        <p className="highlight-text-block">{text}</p>
+      </div>
+      )
+  }
+
+  export const NewChallengeInfo = ({name, timeLimit}) => {
+    return (
+      <div className="cmd-group">
+      <p> New challenge  <span className="command">"{name}"</span>  added to your home folder.</p>
+      <p> Time to solve: <span className="command">{` ${timeLimit} `}</span> hours.</p>
+    </div>
+    )
+  }
+
+  export const RequestWarning = () => {
+    return (
+      <div className="cmd-group">
+        <p> <span className="term-warning">You are about to begin a TIME-LIMITED challenge. You will have 7 days to complete each newly requested challenge or LOSE ACCESS to this site.</span></p>
+        <p>  <span className="term-gold">Do you wish to proceed and start the timer on your first challenge?</span></p>
+      </div>
+    )
+  }
+
+  export const submissionWarning = () => {
+    <div className="cmd-group">
+    <p> <span className="term-warning">Are you sure you want to submit your solution?</span></p>
+  </div>
+  }

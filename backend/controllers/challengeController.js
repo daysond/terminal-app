@@ -14,6 +14,7 @@ exports.getChallengeInstruction = async (req, res) => {
         const _id = req.user?._id._id
         const user = await User.findOne({_id})
         // const challengeRoot = await ChallengeModel.findOne({name:"root", year: currentYear}, {_id:0}).lean() // without id
+
  
         res.status(200).json(user.challenge)
                          
@@ -43,12 +44,15 @@ exports.requestNewChallenge = async (req, res) => {
         if(userEligible) {
             const newChallenge = await ChallengeModel.findOne({level: newLevel, year: currentYear}, {_id:0}).lean()
             // TODO: completed condition ?
-
-            user.challenge.children.push(newChallenge)
+            const challenge = user.challenge 
+            challenge.children.push(newChallenge)
+            //TODO: NEW PROMPT intro
+            challenge.children.filter(e=>e.name==='journal.txt')[0].content += "\n\nThis is new prompt"
             user.level = newLevel
             user.status = 'started'
+            user.challenge = challenge
             await user.save()
-            res.status(200).json(user.challenge)
+            res.status(200).json({challenge: user.challenge, intro: "this is new prompt", name: newChallenge.name, timeLimit: "48" })
 
         } else {
 
@@ -138,7 +142,7 @@ exports.submitChallenge = async (req, res) => {
         //MARK: ---------- Code Engine API Call ----------
         // TODO: CHANGE IT BACK TO SERVICE IN PROD
         // const response = await fetch("http://code-engine-server:5001/submit", requestOptions)
-        const response = await fetch("http://159.203.11.15:5001/submit", requestOptions) // REVIEW: USED FOR DEV
+        const response = await fetch("http://localhost:5001/submit", requestOptions) // REVIEW: USED FOR DEV
         const json = await response.json()
         const {status, data} = json
         console.log("got res, json", status, data)

@@ -66,6 +66,7 @@ userSchema.statics.signup = async function(email, password) {
 
 
     const challengeRoot = await ChallengeModel.findOne({name:"root", year: currentYear}, {_id:0}).lean()
+    challengeRoot.name = email.split("@")[0]
     const user = await this.create({email, password: hash, level: 0, challenge: challengeRoot})
 
     return user

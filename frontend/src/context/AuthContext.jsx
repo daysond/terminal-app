@@ -19,6 +19,7 @@ export const authReducer = (state, action) => {
 }
 
 export const AuthContextProvider = ({children}) => {
+    console.log("provider auth context")
     const [state, dispatch] = useReducer(authReducer, {
         user: null
     })
@@ -29,6 +30,7 @@ export const AuthContextProvider = ({children}) => {
         const user = JSON.parse(localStorage.getItem('user'))
 
         if (user) {
+            console.log(user)
             dispatch({type: 'logged_in', payload: user})
         }
 

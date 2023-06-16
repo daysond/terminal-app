@@ -73,10 +73,18 @@ export const InvalidOutputMsg = ({cmd, msg}) => {
     )
 }
 
+export const Message = ({msg}) => {
+    return (
+    <div style={{width: '100%'}}>
+        <span>{`${msg}`}</span>
+    </div>
+    )
+}
+
 export const LsOutput = ({contents}) => {
 
     const fileElements = contents?.map(element =>
-        <span key={nanoid()} className={element.isFolder ? "term-yellow block-span" : "block-span"}>{element.name}</span>
+        <span key={nanoid()} className={element.isFolder ? "term-blue block-span" : "block-span"}>{element.name}</span>
     )
 
     return (
@@ -91,14 +99,20 @@ export const CatOutput = ({fileContent}) => {
     const pElements = fileContent.split("\n").map(p =>
         <p key={nanoid()} className="terminal-p" >{p}</p>
     )
-
     return (
-        <div style={{width: '100%'}}>
+        <div style={{width: '100%', whiteSpace: 'pre-wrap'}}>
         <br />
-        {pElements}
+        <p key={nanoid()} className="terminal-p" >{fileContent}</p>
         <br />
         </div>
     )
+    // return (
+    //     <div style={{width: '100%', whiteSpace: 'pre'}}>
+    //     <br />
+    //     {pElements}
+    //     <br />
+    //     </div>
+    // )
 }
 
 // export const InvalidOutput = ({cmd}) => {
