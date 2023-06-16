@@ -1,21 +1,33 @@
 version: "3"
 services:
-  nginx:
-    image: nginx:stable-alpine
-    ports:
-      - "80:80"
-    volumes:
-      - ./frontend/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+  # nginx:
+  #   image: nginx:stable-alpine
+  #   restart: always
+  #   depends_on:
+  #       - api-server
+  #       - foobar-app
+  #   volumes:
+  #       - ./frontend/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+  #   ports:
+  #      - 80:80
+  #   networks:
+  #      - foobar-api
   
   api-server:
-    build: ./backend
-    image: api-server
+    restart: always
+    build:
+      context: ./backend
+      args:
+        NODE_ENV: production  
     environment:
-      - PORT=4000
-    networks:
-      - foobar-api
+      - NODE_ENV=production
+      - MONGO_URI=${MONGO_URI}
+      - JWT_SECRET=${JWT_SECRET}
+    command: npm start
     # ports:
     #   - "4000:4000"
+    networks:
+      - foobar-api
   rabbitmq:
     image: "rabbitmq"
     restart: always
@@ -46,14 +58,15 @@ services:
       - foobar-api
 
   foobar-app:
+    restart: always
     build: ./frontend
-    image: foobar-app
+    # image: foobar-app
     environment:
       - PORT=3000
     ports:
-      - 3000:80
+      - 3000:3000
     depends_on:
-      - nginx
+      - api-server
     networks:
       - foobar-api
 

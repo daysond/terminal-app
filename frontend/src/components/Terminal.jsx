@@ -142,11 +142,11 @@ export default function Terminal({openEditor, outputs, setOutputs, previousCmds,
       console.log(json)
       file.editable = false
       setOutputs(prevState => [...prevState,
-        <InvalidOutputMsg key={nanoid()} cmd={"Submite error"} msg={json} />])
+        <InvalidOutputMsg key={nanoid()} cmd={"Submit"} msg={json.result} />])
     } else {
       //TODO: SET JSON
       setOutputs(prevState => [...prevState,
-            <InvalidOutputMsg key={nanoid()} cmd={"Submite error"} msg={json} />])
+            <InvalidOutputMsg key={nanoid()} cmd={"Submit"} msg={json.message} />])
       console.log(json)
     }
 

@@ -45,7 +45,7 @@ export const Home = () => {
       const json = await response.json();
 
       if (response.ok) {
-        console.log("[DEBUG] Got challenges");
+        console.log("[DEBUG] Got challenges ", json);
         // setFilesystemJSON(json)
         setDirectory(createFS(json, null));
       } else {

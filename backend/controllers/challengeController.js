@@ -111,6 +111,8 @@ exports.saveChallenge = async (req, res) => {
 
 exports.submitChallenge = async (req, res) => {
 
+    console.log("challenge submit")
+
     try {
         const _id = req.user._id._id
         const user = await User.findOne({_id})
@@ -192,7 +194,7 @@ exports.submitChallenge = async (req, res) => {
 
     } catch (error) {
         console.log(error)
-        res.status(400).json({error: error.message})
+        res.status(400).json({message: error.message})
     }
 
 }

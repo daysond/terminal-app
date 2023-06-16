@@ -20,7 +20,7 @@ export const useSignup = () => {
 
         console.log("[DEBUG] Signing up...")
 
-        const response = await fetch('http://terminal-app-api-server-1:4000/api/user/signup', {
+        const response = await fetch('http://localhost:4000/api/user/signup', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({email, password})

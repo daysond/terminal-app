@@ -190,17 +190,19 @@ export const createFS = (fs, parent) => {
         //                                 .map(c => createFS(c, absRoot))
         return absRoot
     }
-    
-    const root = new Node()
-    root.name = fs.name
-    root.isFolder = fs.type === "directory"
-    root.parent = parent
-    root.level = fs.level
-    root.editable = fs.editable
-    root.year = fs.year
-    root.content = fs.content
-    root.children = fs.children?.map(c => createFS(c, root))
-    return root
+    // REVIEW: in childen, there a null file object caused by request 5th challange
+    if(fs) {
+        const root = new Node()
+        root.name = fs.name
+        root.isFolder = fs.type === "directory"
+        root.parent = parent
+        root.level = fs.level
+        root.editable = fs.editable
+        root.year = fs.year
+        root.content = fs.content
+        root.children = fs.children?.map(c => createFS(c, root))
+        return root
+    }
 }
 
 // export let root = createFS(fs, null)
