@@ -134,7 +134,7 @@ export default function Terminal({openEditor, outputs, setOutputs, previousCmds,
       body: JSON.stringify({level, code})
     }
     
-    const response = await fetch("http://localhost:4000/api/challenge/submit", requestOptions)
+    const response = await fetch("http://159.203.11.15:4000/api/challenge/submit", requestOptions)
 
     const json = await response.json()
       
