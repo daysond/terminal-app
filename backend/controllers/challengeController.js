@@ -138,7 +138,7 @@ exports.submitChallenge = async (req, res) => {
         //MARK: ---------- Code Engine API Call ----------
         // TODO: CHANGE IT BACK TO SERVICE IN PROD
         // const response = await fetch("http://code-engine-server:5001/submit", requestOptions)
-        const response = await fetch("http://localhost:5001/submit", requestOptions) // REVIEW: USED FOR DEV
+        const response = await fetch("http://159.203.11.15:5001/submit", requestOptions) // REVIEW: USED FOR DEV
         const json = await response.json()
         const {status, data} = json
         console.log("got res, json", status, data)

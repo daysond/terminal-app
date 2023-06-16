@@ -36,7 +36,7 @@ export const Home = () => {
     setOS(getOperatingSystem(window));
 
     const fetchFileSystem = async () => {
-      const response = await fetch("http://localhost:4000/api/challenge/", {
+      const response = await fetch("http://159.203.11.15:4000/api/challenge/", {
         headers: {
           authorization: `Bearer ${user?.token}`,
         },
@@ -93,7 +93,7 @@ export const Home = () => {
       body: JSON.stringify({ content: content, level: level }),
     };
 
-    const response = await fetch("http://localhost:4000/api/challenge/save", requestOptions);
+    const response = await fetch("http://159.203.11.15:4000/api/challenge/save", requestOptions);
 
     const json = await response.json();
 
