@@ -16,7 +16,7 @@ router.post("/submit", async (req, res) => {
         await sendMessage(data);
         //REVIEW: DOCKER SERVICE NAME URL
         // res.status(202).send(successResponse(`http://code-engine-server:5001/results/${data.folder}`));
-        res.status(202).send(successResponse(`http://159.203.11.15:5001/results/${data.folder}`));
+        res.status(202).send(successResponse(`http://localhost:5001/results/${data.folder}`));
     } catch (error) {
         console.log(error);
         res.status(500).send(errorResponse(500, "System error"));

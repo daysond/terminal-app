@@ -29,21 +29,21 @@ export const Home = () => {
   // REVIEW:  get file system before home is loaded..?
   // TODO: CHANGE NEEDED
 
-  const [directory, setDirectory] = useState(null)
-  const [responseErr, setResponseErr] = useState(null)
-  const { user } = useAuthContext()
-  const [deadline, setDeadline] = useState(user.deadline)
-  const username = user.email.split("@")[0]
+  const [directory, setDirectory] = useState(null);
+  const [responseErr, setResponseErr] = useState(null);
+  const { user } = useAuthContext();
+  const [deadline, setDeadline] = useState(user.deadline);
+  const username = user.email.split("@")[0];
 
   useEffect(() => {
     setOutputs([
       <WelcomeBanner key={nanoid()} />,
-      <MountingPrompt key={nanoid()} username={username} />
+      <MountingPrompt key={nanoid()} username={username} />,
     ]);
     setOS(getOperatingSystem(window));
 
     const fetchFileSystem = async () => {
-      const response = await fetch("http://159.203.11.15:4000/api/challenge/", {
+      const response = await fetch("http://localhost:4000/api/challenge/", {
         headers: {
           authorization: `Bearer ${user?.token}`,
         },
@@ -55,10 +55,16 @@ export const Home = () => {
         console.log("[DEBUG] Got challenges ", json);
         // setFilesystemJSON(json)
         setDirectory(createFS(json, null));
-        
-        setOutputs(prev => [...prev,
-          <HighlightedText key={nanoid()} text={json.children.filter(e=>e.name === "journal.txt")[0].content} />
-        ])
+
+        setOutputs((prev) => [
+          ...prev,
+          <HighlightedText
+            key={nanoid()}
+            text={
+              json.children.filter((e) => e.name === "journal.txt")[0].content
+            }
+          />,
+        ]);
       } else {
         setResponseErr({
           status: response.status,
@@ -70,7 +76,7 @@ export const Home = () => {
     };
 
     if (user) {
-      console.log("calling fetch ", user)
+      console.log("calling fetch ", user);
       fetchFileSystem();
     }
   }, [user]);
@@ -106,7 +112,7 @@ export const Home = () => {
     };
 
     const response = await fetch(
-      "http://159.203.11.15:4000/api/challenge/save",
+      "http://localhost:4000/api/challenge/save",
       requestOptions
     );
 
@@ -162,7 +168,7 @@ export const Home = () => {
     filesystemRootRef,
     user,
     setDeadline,
-    deadline
+    deadline,
   };
 
   return (
@@ -175,58 +181,61 @@ export const Home = () => {
           path="/"
           element={
             <div className="home-main">
-              { editorMode ? (
-              <Split sizes={[50, 50]} direction="horizontal" className="split">
-                <Terminal {...terminalProps} />
-                <div className="editor">
-                  {editorFile.name !== undefined && (
-                    <div className="editor-header shadow">
-                      <p className="editor-filename">{editorFile.name}</p>
-                      <p className="editor-filename">{lastSaved}</p>
+              {editorMode ? (
+                <Split
+                  sizes={[50, 50]}
+                  direction="horizontal"
+                  className="split"
+                >
+                  <Terminal {...terminalProps} />
+                  <div className="editor">
+                    {editorFile.name !== undefined && (
+                      <div className="editor-header shadow">
+                        <p className="editor-filename">{editorFile.name}</p>
+                        <p className="editor-filename">{lastSaved}</p>
+                      </div>
+                    )}
+                    <AceEditor
+                      height="100%"
+                      width="100%"
+                      mode="python"
+                      theme="monokai"
+                      wrapEnabled={true}
+                      showPrintMargin={false}
+                      cursorStart={3}
+                      setOptions={{
+                        enableBasicAutocompletion: true,
+                        enableLiveAutocompletion: true,
+                        enableSnippets: true,
+                      }}
+                      commands={editorCommands}
+                      focus={true}
+                      value={editorText}
+                      defaultValue={editorFile.content}
+                      onChange={handleEditorChange}
+                    />
+                    <div className="editor-footer">
+                      <p className="editor-cmd">
+                        {" "}
+                        [Save] {os === "Mac" ? "Cmd+S" : "Ctrl+S"} [Close]{" "}
+                        {os === "Mac" ? "Cmd+E" : "Ctrl+E"}{" "}
+                      </p>
                     </div>
-                  )}
-                  <AceEditor
-                    height="100%"
-                    width="100%"
-                    mode="python"
-                    theme="monokai"
-                    wrapEnabled={true}
-                    showPrintMargin={false}
-                    cursorStart={3}
-                    setOptions={{
-                      enableBasicAutocompletion: true,
-                      enableLiveAutocompletion: true,
-                      enableSnippets: true,
-                    }}
-                    commands={editorCommands}
-                    focus={true}
-                    value={editorText}
-                    defaultValue={editorFile.content}
-                    onChange={handleEditorChange}
-                  />
-                  <div className="editor-footer">
-                    <p className="editor-cmd">
-                      {" "}
-                      [Save] {os === "Mac" ? "Cmd+S" : "Ctrl+S"} [Close]{" "}
-                      {os === "Mac" ? "Cmd+E" : "Ctrl+E"}{" "}
-                    </p>
                   </div>
+                </Split>
+              ) : (
+                <Terminal {...terminalProps} />
+              )}
+
+              <div className="home-footer">
+                {deadline && <Countdown key={nanoid()} futureDate={deadline} />}
+                <p>SESS Foobar</p>
+                <div className="footer-contact">
+                  <p> Contact:</p>
+                  <InstagramIcon key={nanoid()} />
                 </div>
-              </Split>
-            ) : (
-              <Terminal {...terminalProps} />
-            )}
-   
-           <div className="home-footer">
-              {deadline && <Countdown key={nanoid()} futureDate={deadline} />}
-              <p>SESS Foobar</p>
-              <div className="footer-contact">
-                <p> Contact:</p>
-                <InstagramIcon key={nanoid()}  />
               </div>
-               
             </div>
-          </div>
           }
         ></Route>
         {/* )} */}

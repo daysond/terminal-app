@@ -26,7 +26,7 @@ export default function Terminal({
   directory,
   setDirectory,
   setDeadline,
-  deadline
+  deadline,
 }) {
   const { logout } = useLogout();
 
@@ -166,7 +166,7 @@ export default function Terminal({
     };
 
     const response = await fetch(
-      "http://159.203.11.15:4000/api/challenge/request",
+      "http://localhost:4000/api/challenge/request",
       requestOptions
     );
 
@@ -177,13 +177,11 @@ export default function Terminal({
       setTerminalMode(terminalModes.normal);
       console.log(json.intro);
       setDirectory(createFS(json.challenge, null));
-      setDeadline(json.deadline)
+      setDeadline(json.deadline);
 
-      const user = JSON.parse(localStorage.getItem('user'))
-      user.deadline = deadline
-      localStorage.setItem('user',  JSON.stringify(user))
-
-      console.log("user, ", localStorage.getItem('user'))
+      const user = JSON.parse(localStorage.getItem("user"));
+      user.deadline = json.deadline;
+      localStorage.setItem("user", JSON.stringify(user));
 
       setOutputs((prevState) => [
         ...prevState,
@@ -207,9 +205,8 @@ export default function Terminal({
       ]);
       console.log(json);
     }
-    focusTextArea()
+    focusTextArea();
   };
-
 
   const submitChallenge = async (file) => {
     const level = file.parent.level;
@@ -227,7 +224,7 @@ export default function Terminal({
     };
 
     const response = await fetch(
-      "http://159.203.11.15:4000/api/challenge/submit",
+      "http://localhost:4000/api/challenge/submit",
       requestOptions
     );
 
@@ -249,7 +246,7 @@ export default function Terminal({
       console.log(json);
     }
 
-    focusTextArea()
+    focusTextArea();
   };
 
   //MARK: ------------- TERMINAL RESPONSE -------------------
@@ -670,8 +667,7 @@ export default function Terminal({
         ]);
     } // end of switch
 
-    focusTextArea()
-
+    focusTextArea();
   };
 
   // MARK: HELPERS
