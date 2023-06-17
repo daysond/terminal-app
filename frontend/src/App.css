@@ -12,12 +12,57 @@
   .shadow {
      box-shadow: 0px 2px 5px rgba(0,0,0,.155);
   }
-  main {
+  /* ---------- home ---------- */
+  .home-main {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
+
+  .home-footer {
+    display: flex;
+    padding-left: 50px;
+    padding-right: 100px;
+    height: 40px;
+    border-top: 2px solid #91000064;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #7b7b7b;
+    color: #f8f8f8;
+    font-family: 'VT323', monospace;
+    font-size: 20px;
+    font-weight: bold;
+  }
+
+.footer-contact p {
+  /* border: 2px solid red; */
+ }
+
+ .footer-icon {
+  position: absolute;
+  transform: translateY(-50%);
+  /* border: 2px solid red; */
+ }
+
+.footer-contact {
+  /* border: 2px solid red; */
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+}
+
+.countdown-clock {
+
+}
+
+  /* -------------------------- */
+  /* main {
     width: 100vw;
     height: 100vh;
-    /* padding: 30px; */
+
     font-size: 24px;
-  }
+  } */
   
   .user-command {
     margin-top: 30px;
@@ -120,6 +165,8 @@
 
  .split {
     display: flex;
+    overflow: hidden;
+    height: 100%;
 }
 
 .editor {
@@ -132,7 +179,7 @@
     width: 80%;
     height: 100%;
     flex: 1;
-    overflow-y: auto;
+    overflow-y:scroll;
 }
 
 .editor-header {
@@ -223,9 +270,10 @@
   } */
   
   .terminal {
+    flex: 1;
     line-height: normal;
-    overflow-y: auto;
-    position: relative
+    overflow-y: scroll;
+    position: relative;
   }
   
   /* terminal.terminal-temp {
@@ -238,7 +286,8 @@
   
   .terminal {
     height: 100%;
-    min-height: 100vh
+    /* min-height: 100%; */
+    flex-grow: 1;
   }
   
   html {

@@ -3,6 +3,8 @@ const bcrypt = require('bcrypt')
 const validator = require('validator') 
 
 const {challengeSchema, ChallengeModel} = require('./challengeModel')
+const {solutionSchema, SolutionModel, ChallengeToSolution} = require('./solutionModel')
+
 const currentYear = new Date().getFullYear();
 
 const Schema = mongoose.Schema
@@ -19,16 +21,32 @@ const userSchema = new Schema({
     },
     level: {
         type: Number,
-        required: true
+        required: true,
+        default: 0
+    },
+    question: {
+        type: Number,
+        required: true,
+        default: 0
+    },
+    totalLevelQuestions: {
+        type: Number,
+        required: true,
+        default:0
     },
     status: {
         type: String,
         required: true,
-        enum: ['new', 'started' ,'passed', 'failed', 'completed'],
+        enum: ['new', 'started' ,'passed', 'timeout', 'completed'],
         default: "new"
     },
+    deadline: {
+        type: Date,
+        required: false,
+        default: null,
+    },
     challenge: {
-        type: challengeSchema,
+        type: solutionSchema,
         required: true
     }
 }, {timestamps: true})
@@ -67,7 +85,8 @@ userSchema.statics.signup = async function(email, password) {
 
     const challengeRoot = await ChallengeModel.findOne({name:"root", year: currentYear}, {_id:0}).lean()
     challengeRoot.name = email.split("@")[0]
-    const user = await this.create({email, password: hash, level: 0, challenge: challengeRoot})
+    const solutionRoot = ChallengeToSolution(challengeRoot)
+    const user = await this.create({email, password: hash, level: 0, question:0, deadline: null, challenge: solutionRoot})
 
     return user
 

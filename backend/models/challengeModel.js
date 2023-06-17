@@ -18,15 +18,29 @@ const challengeSchema = new Schema({
     },
     level: {
         type: Number,
+        required: true,
+        default: 0
+    },
+    question: {
+        type: Number,
+        required: false,
+        default: 0
+    },
+    intro: {
+        type: String,
         required: false
     },
-    editable: {
-        type: Boolean,
+    outro: {
+        type: String,
         required: false
+    },
+    timeLimit: {
+        type: Number,
+        required: false,
     },
     year: {
         type: Number,
-        required: true
+        required: false
     },
     content: {
         type: String,

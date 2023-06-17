@@ -162,15 +162,13 @@ const fs = [{
 
 
 class Node {
-  constructor(name, isFolder, content, children, parent, level, editable, year) {
-    this.name = name;
-    this.isFolder = isFolder;
-    this.children = children;
-    this.parent = parent;
+  constructor(name, isFolder, content, children, parent, editable) {
+    this.name = name
+    this.isFolder = isFolder
+    this.children = children
+    this.parent = parent
     this.content = content
-    this.level = level,
-    this.editable = editable,
-    this.year = year
+    this.editable = editable
   }
 }
 
@@ -181,9 +179,7 @@ export const createFS = (fs, parent) => {
         absRoot.name = fs.name
         absRoot.isFolder = fs.type === "directory"
         absRoot.parent = parent
-        absRoot.level = fs.level
         absRoot.editable = fs.editable
-        absRoot.year = fs.year
         absRoot.content = fs.content
         absRoot.children = fs.children?.map(c => createFS(c, absRoot))
         // absRoot.children = fs.children?.filter(c => c.level < 1)
@@ -196,9 +192,7 @@ export const createFS = (fs, parent) => {
         root.name = fs.name
         root.isFolder = fs.type === "directory"
         root.parent = parent
-        root.level = fs.level
         root.editable = fs.editable
-        root.year = fs.year
         root.content = fs.content
         root.children = fs.children?.map(c => createFS(c, root))
         return root

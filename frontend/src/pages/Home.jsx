@@ -16,6 +16,8 @@ import { useAuthContext } from "../hooks/useAuthContext";
 import { ErrorPage } from "./ErrorPage";
 import { useLogout } from "../hooks/useLogout";
 import { MountingPrompt, HighlightedText } from "../command";
+import Countdown from "../components/Countdown";
+import InstagramIcon from "../components/InstagramIcon";
 
 export const Home = () => {
   const [os, setOS] = useState("Unknown");
@@ -50,9 +52,10 @@ export const Home = () => {
       const json = await response.json();
 
       if (response.ok) {
-        // console.log("[DEBUG] Got challenges ", json);
+        console.log("[DEBUG] Got challenges ", json);
         // setFilesystemJSON(json)
         setDirectory(createFS(json, null));
+        
         setOutputs(prev => [...prev,
           <HighlightedText key={nanoid()} text={json.children.filter(e=>e.name === "journal.txt")[0].content} />
         ])
@@ -169,7 +172,8 @@ export const Home = () => {
         <Route
           path="/"
           element={
-            editorMode ? (
+            <div className="home-main">
+              { editorMode ? (
               <Split sizes={[50, 50]} direction="horizontal" className="split">
                 <Terminal {...terminalProps} />
                 <div className="editor">
@@ -180,7 +184,7 @@ export const Home = () => {
                     </div>
                   )}
                   <AceEditor
-                    height="100vh"
+                    height="100%"
                     width="100%"
                     mode="python"
                     theme="monokai"
@@ -209,7 +213,18 @@ export const Home = () => {
               </Split>
             ) : (
               <Terminal {...terminalProps} />
-            )
+            )}
+   
+           <div className="home-footer">
+              {user.deadline && <Countdown futureDate={user.deadline} />}
+              <p>SESS Foobar</p>
+              <div className="footer-contact">
+                <p> Contact:</p>
+                <InstagramIcon />
+              </div>
+               
+            </div>
+          </div>
           }
         ></Route>
         {/* )} */}

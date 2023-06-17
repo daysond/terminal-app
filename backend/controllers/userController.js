@@ -18,7 +18,9 @@ const loginUser = async (req, res) => {
 
         const token = createToken(user._id)
 
-        res.status(200).json({email, token})
+        const deadline = user.deadline
+
+        res.status(200).json({email, token, deadline})
 
 
     } catch (error) {
@@ -39,7 +41,9 @@ const signupUser = async (req, res) => {
 
         const token = createToken(user._id)
 
-        res.status(200).json({email, token})
+        const deadline = user.deadline
+
+        res.status(200).json({email, token, deadline})
 
 
     } catch (error) {

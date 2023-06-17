@@ -216,8 +216,8 @@ export default function Terminal({
     const json = await response.json();
 
     if (response.ok) {
-      console.log(json);
-      file.editable = false;
+      // console.log(json);
+      // file.editable = false;
       setOutputs((prevState) => [
         ...prevState,
         <InvalidOutputMsg key={nanoid()} cmd={"Submit"} msg={json.result} />,

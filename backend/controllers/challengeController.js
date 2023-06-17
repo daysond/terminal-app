@@ -1,7 +1,7 @@
 // Model
 const {ChallengeModel} = require('../models/challengeModel')
 const User = require('../models/userModel')
-const Solution = require('../models/solutionModel');
+const {solutionSchema, SolutionModel, ChallengeToSolution} = require('../models/solutionModel')
 
 // Get all challenges
 const currentYear = new Date().getFullYear();
@@ -30,10 +30,12 @@ exports.requestNewChallenge = async (req, res) => {
         const _id = req.user._id._id
         const user = await User.findOne({_id})
         const userLevel = user.level
+        const questionLevel = user.question
         const newLevel = userLevel + 1
+        const newQuestionLevel = questionLevel + 1
 
         // checks user level, 0? no futher checking
-        let userEligible = userLevel === 0
+        let userEligible = userLevel === 0 && questionLevel === 0
 
         // non 0, validate solutions
         if (userLevel > 0){
@@ -42,17 +44,31 @@ exports.requestNewChallenge = async (req, res) => {
        
         // can request new solution? append solution to user list and save solution also new user level
         if(userEligible) {
-            const newChallenge = await ChallengeModel.findOne({level: newLevel, year: currentYear}, {_id:0}).lean()
+            // new level
+            console.log("user eligible")
+            let newChallenge = null
+            if(newQuestionLevel > user.totalLevelQuestions || user.totalLevelQuestions === 0) {
+                const newChallenges = await ChallengeModel.find({level: newLevel, year: currentYear}, {_id:0}).lean()
+                user.totalLevelQuestions = newChallenges.length
+                newChallenge = newChallenges.filter(e=>e.question===1)[0]
+
+            } else {
+                newChallenge = await ChallengeModel.findOne({level: userLevel, question: newQuestionLevel, year: currentYear}, {_id:0}).lean()
+            }
+
+            newChallenge.parent = user.email.split("@")[0]
+            const now = new Date();
+            const deadline = new Date(now.getTime() + newChallenge.timeLimit * 60 * 60 * 1000);
             // TODO: completed condition ?
             const challenge = user.challenge 
-            challenge.children.push(newChallenge)
-            //TODO: NEW PROMPT intro
-            challenge.children.filter(e=>e.name==='journal.txt')[0].content += "\n\nThis is new prompt"
+            challenge.children.unshift(ChallengeToSolution(newChallenge))
+            challenge.children.filter(e=>e.name==='journal.txt')[0].content += `\n${newChallenge.intro}`
             user.level = newLevel
             user.status = 'started'
+            user.deadline = deadline
             user.challenge = challenge
             await user.save()
-            res.status(200).json({challenge: user.challenge, intro: "this is new prompt", name: newChallenge.name, timeLimit: "48" })
+            res.status(200).json({challenge: user.challenge, intro: newChallenge.intro, name: newChallenge.name, timeLimit: newChallenge.timeLimit })
 
         } else {
 
@@ -96,8 +112,9 @@ exports.saveChallenge = async (req, res) => {
         console.log(level, content)
         const user = await User.findOne({_id})
 
+
         const challenge = user.challenge
-        const challengeFolder = challenge.children.find(child=> child.level === level)
+        const challengeFolder = challenge.children.find(child=> child.type === 'directory')
         const file = challengeFolder.children.find(child=> child.name === 'solution.py')
         file.content = content
         user.challenge = challenge
@@ -166,18 +183,18 @@ exports.submitChallenge = async (req, res) => {
                   }
             }).then( async resultJson => {
                 const output = resultJson.data.output.trim()
-                user.status = output
-
-                // MARK: REPEATED CODE, marking file not editable aka submitable
-                // REVIEW: on client end, editable is not synced.
-                const challenge = user.challenge
-                const challengeFolder = challenge.children.find(child=> child.level === challengeLevel)
-                const file = challengeFolder.children.find(child=> child.name === 'solution.py')
-                file.editable = false
-                user.challenge = challenge
+                if(output === 'passed'){
+                    user.status = output
+                    user.challenge.children = user.challenge.children.filter(e => e.type === 'file')
+                } else {
+                    console.log('failed')
+                }
+                // TODO: 1. VALIDATE result. pass or failed.
+                    // 2. if pass, delete challenge, send res
+                    // 3. if failed, send test result
 
                 await user.save()
-                console.log("user saved")
+
                 return output
                 // res.status(200).json({result: "123"})
             }).then(output => {
