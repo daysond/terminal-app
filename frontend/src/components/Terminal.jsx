@@ -183,6 +183,8 @@ export default function Terminal({
       user.deadline = deadline
       localStorage.setItem('user',  JSON.stringify(user))
 
+      console.log("user, ", localStorage.getItem('user'))
+
       setOutputs((prevState) => [
         ...prevState,
         <HighlightedText key={nanoid()} text={json.intro} />,
