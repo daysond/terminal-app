@@ -6,7 +6,6 @@ import {
   InvalidOutputMsg,
   LsOutput,
   CatOutput,
-  WelcomeBanner,
   Message,
 } from "./Output";
 import { useEffect, useRef, useState } from "react";
@@ -26,33 +25,34 @@ export default function Terminal({
   user,
   directory,
   setDirectory,
-
 }) {
-
- 
   const { logout } = useLogout();
 
   const inputFieldReference = useRef(null);
   const [userCommand, setUserCommand] = useState("");
   const [currentCmdIdx, setCurrentCmdIdx] = useState(-1);
   const [cursorIdx, setCursorIdx] = useState(0);
-  const username = user.email.split("@")[0]
+  const username = user.email.split("@")[0];
   const [cmdPrompt, setCmdPrompt] = useState("");
 
   const terminalModes = {
-    normal: 'NORMAL',
-    disable: 'DISABLE',
-    yesno: 'YESNO'
-  }
-  const [terminalMode, setTerminalMode] = useState(terminalModes.normal)
- 
+    normal: "NORMAL",
+    disable: "DISABLE",
+    yesno: "YESNO",
+  };
+  const [terminalMode, setTerminalMode] = useState(terminalModes.normal);
+
   useEffect(() => {
-    updateCommandPrompt(directory ?  directory.name === username ? "" : directory.name : '')
+    updateCommandPrompt(
+      directory ? (directory.name === username ? "" : directory.name) : ""
+    );
   }, [directory]);
 
-  useEffect(()=>{
-    updateCommandPrompt(directory ?  directory.name === username ? "" : directory.name : '')
-  }, [terminalMode])
+  useEffect(() => {
+    updateCommandPrompt(
+      directory ? (directory.name === username ? "" : directory.name) : ""
+    );
+  }, [terminalMode]);
 
   // Handle user command
   const handleChange = (event) => {
@@ -62,9 +62,8 @@ export default function Terminal({
   };
 
   const handleKeyDown = (event) => {
-
-    if(terminalMode === terminalModes.disable) {
-      return
+    if (terminalMode === terminalModes.disable) {
+      return;
     }
 
     if (event.key === "Enter" && terminalMode === terminalModes.normal) {
@@ -78,7 +77,7 @@ export default function Terminal({
     }
 
     if (event.key === "Enter" && terminalMode === terminalModes.yesno) {
-      handleYesNoSelection()
+      handleYesNoSelection();
     }
 
     if (event.key === "ArrowUp") {
@@ -135,15 +134,15 @@ export default function Terminal({
         .trimStart()
         .split(" ")
         .filter((e) => e != "");
-      
-      if(inputs.length === 1) 
-        return 
-      
-        const arg = inputs[inputs.length-1];
-      const autoCompeletedCmd = userCommand.trimEnd().slice(0, -arg.length) + findDocumentMatches(arg)
-      const len = autoCompeletedCmd.length
 
-      setUserCommand(autoCompeletedCmd)
+      if (inputs.length === 1) return;
+
+      const arg = inputs[inputs.length - 1];
+      const autoCompeletedCmd =
+        userCommand.trimEnd().slice(0, -arg.length) + findDocumentMatches(arg);
+      const len = autoCompeletedCmd.length;
+
+      setUserCommand(autoCompeletedCmd);
       inputFieldReference.current.setSelectionRange(len, len);
       setCursorIdx(len);
     }
@@ -165,7 +164,7 @@ export default function Terminal({
     };
 
     const response = await fetch(
-      "http://localhost:4000/api/challenge/request",
+      "http://159.203.11.15:4000/api/challenge/request",
       requestOptions
     );
 
@@ -173,24 +172,21 @@ export default function Terminal({
 
     if (response.ok) {
       // setFilesystemJSON(json)
-      setTerminalMode(terminalModes.normal)
-      console.log(json.intro)
+      setTerminalMode(terminalModes.normal);
+      console.log(json.intro);
       setDirectory(createFS(json.challenge, null));
       setOutputs((prevState) => [
         ...prevState,
-        <HighlightedText
-          key={nanoid()}
-          text={json.intro}
-        />,
+        <HighlightedText key={nanoid()} text={json.intro} />,
         <NewChallengeInfo
-        key={nanoid()}
-        name={json.name}
-        timeLimit={json.timeLimit}
-      />,
+          key={nanoid()}
+          name={json.name}
+          timeLimit={json.timeLimit}
+        />,
       ]);
     } else {
       //TODO: SET JSON
-      setTerminalMode(terminalModes.normal)
+      setTerminalMode(terminalModes.normal);
       setOutputs((prevState) => [
         ...prevState,
         <InvalidOutputMsg
@@ -219,7 +215,7 @@ export default function Terminal({
     };
 
     const response = await fetch(
-      "http://localhost:4000/api/challenge/submit",
+      "http://159.203.11.15:4000/api/challenge/submit",
       requestOptions
     );
 
@@ -245,30 +241,30 @@ export default function Terminal({
   //MARK: ------------- TERMINAL RESPONSE -------------------
 
   const handleYesNoSelection = () => {
-    const action = previousCmds[0]
+    const action = previousCmds[0];
     switch (userCommand.toUpperCase()) {
-      case 'Y':
-        let msg = ''
-        if(action === 'request'){
-          requestNewChallenge()
-          msg = 'Requesting new challenge...'
+      case "Y":
+        let msg = "";
+        if (action === "request") {
+          requestNewChallenge();
+          msg = "Requesting new challenge...";
         }
-        if(action === 'submit'){
-          submitChallenge(file)
-          msg = 'Submitting solution...'
+        if (action === "submit") {
+          submitChallenge(file);
+          msg = "Submitting solution...";
         }
-        setTerminalMode(terminalModes.disable)
+        setTerminalMode(terminalModes.disable);
         setOutputs((prevState) => [
-            ...prevState,
-            <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt} cmd={cmd} />,
-            <Message key={nanoid()} msg= {msg}/>,
-          ]);
+          ...prevState,
+          <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt} cmd={cmd} />,
+          <Message key={nanoid()} msg={msg} />,
+        ]);
         break;
-      case 'N':
-        setTerminalMode(terminalModes.normal)
-        
+      case "N":
+        setTerminalMode(terminalModes.normal);
+
       default:
-        console.log('default...')
+        console.log("default...");
         setOutputs((prevState) => [
           ...prevState,
           <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt} cmd={cmd} />,
@@ -278,7 +274,7 @@ export default function Terminal({
 
     setCurrentCmdIdx(-1);
     setUserCommand("");
-  }
+  };
 
   const response = () => {
     // console.log(`[${userCommand}]`);
@@ -379,7 +375,11 @@ export default function Terminal({
 
           if (arg === "/") {
             setDirectory(filesystemRootRef.current);
-            updateCommandPrompt(filesystemRootRef.current.name === username ? "" : filesystemRootRef.current.name)
+            updateCommandPrompt(
+              filesystemRootRef.current.name === username
+                ? ""
+                : filesystemRootRef.current.name
+            );
             setOutputs((prevState) => [
               ...prevState,
               <EchoCmd
@@ -449,8 +449,8 @@ export default function Terminal({
           if (!shouldTerminate) {
             //REVIEW  CHANGE HERE
             setDirectory(tempDir);
-            updateCommandPrompt(tempDir.name === username ? "" : tempDir.name)
-            
+            updateCommandPrompt(tempDir.name === username ? "" : tempDir.name);
+
             setOutputs((prevState) => [
               ...prevState,
               <EchoCmd
@@ -552,9 +552,9 @@ export default function Terminal({
         setOutputs((prevState) => [
           ...prevState,
           <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt} cmd={userCommand} />,
-          <RequestWarning key={nanoid()}/>
+          <RequestWarning key={nanoid()} />,
         ]);
-        setTerminalMode(terminalModes.yesno)
+        setTerminalMode(terminalModes.yesno);
         // requestNewChallenge();
         break;
 
@@ -657,35 +657,34 @@ export default function Terminal({
     }
   };
 
-  // MARK: HELPERS 
+  // MARK: HELPERS
   const updateCommandPrompt = (currentDir) => {
-  
-    console.log('updating... ', terminalMode)
+    console.log("updating... ", terminalMode);
 
     switch (terminalMode) {
       case terminalModes.normal:
-        setCmdPrompt(`foobar:~/${currentDir} ${username}$ `)
+        setCmdPrompt(`foobar:~/${currentDir} ${username}$ `);
         break;
       case terminalModes.yesno:
-        console.log('setting prompt to y n')
-        setCmdPrompt(`[Y]es or [N]o: `)
-        break
+        console.log("setting prompt to y n");
+        setCmdPrompt(`[Y]es or [N]o: `);
+        break;
       default:
-        setCmdPrompt('')
+        setCmdPrompt("");
         break;
     }
-  }
+  };
 
   const findDocumentMatches = (input) => {
     const matches = [];
-    const options = directory.children.map(e=>e.name)
+    const options = directory.children.map((e) => e.name);
     for (let i = 0; i < options.length; i++) {
       const option = options[i];
       if (option.startsWith(input)) {
         matches.push(option);
       }
     }
-    
+
     if (matches.length > 1) {
       const commonPrefix = matches[0];
       for (let i = 1; i < matches.length; i++) {
@@ -697,12 +696,11 @@ export default function Terminal({
         matches[0] = commonPrefix.substring(0, j);
       }
     }
-    
+
     return matches.slice(0, 1);
-  }
+  };
 
-
-//MARK: ---------- SET OUTPUT CMD ELEMENTS ----------
+  //MARK: ---------- SET OUTPUT CMD ELEMENTS ----------
 
   const cmd = userCommand?.split("").map((c, index) =>
     index === cursorIdx ? (
@@ -739,7 +737,10 @@ export default function Terminal({
       <div className="terminal-wrapper">
         <div className="terminal-output">{outputs}</div>
         <div className="cmd enabled">
-          <div className="cmd-wrapper" hidden={terminalMode === terminalModes.disable}>
+          <div
+            className="cmd-wrapper"
+            hidden={terminalMode === terminalModes.disable}
+          >
             <span className="cmd-prompt">
               <span
                 className="cmd-prompt"
