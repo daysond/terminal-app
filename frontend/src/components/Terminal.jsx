@@ -179,9 +179,9 @@ export default function Terminal({
       setDirectory(createFS(json.challenge, null));
       setDeadline(json.deadline)
 
-      const user = localStorage.getItem('user')
+      const user = JSON.parse(localStorage.getItem('user'))
       user.deadline = deadline
-      localStorage.setItem('user', user)
+      localStorage.setItem('user',  JSON.stringify(user))
 
       setOutputs((prevState) => [
         ...prevState,
