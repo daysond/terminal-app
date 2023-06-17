@@ -20,7 +20,7 @@ export const useSignup = () => {
 
         console.log("[DEBUG] Signing up...")
 
-        const response = await fetch('http://159.203.11.15:4000/api/user/signup', {
+        const response = await fetch('http://localhost:4000/api/user/signup', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({email, password})
