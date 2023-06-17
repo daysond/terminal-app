@@ -64,9 +64,9 @@ services:
     build: ./frontend
     # image: foobar-app
     environment:
-      - PORT=3000
+      - PORT=80
     ports:
-      - 3000:3000
+      - 80:3000
     depends_on:
       - api-server
     networks:
