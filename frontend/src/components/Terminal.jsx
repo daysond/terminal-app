@@ -166,7 +166,7 @@ export default function Terminal({
     };
 
     const response = await fetch(
-      "http://localhost:4000/api/challenge/request",
+      "http://159.203.11.15:4000/api/challenge/request",
       requestOptions
     );
 
@@ -224,7 +224,7 @@ export default function Terminal({
     };
 
     const response = await fetch(
-      "http://localhost:4000/api/challenge/submit",
+      "http://159.203.11.15:4000/api/challenge/submit",
       requestOptions
     );
 
