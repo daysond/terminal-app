@@ -181,7 +181,7 @@ export default function Terminal({
       const user = localStorage.getItem('user')
       user.deadline = deadline
       localStorage.setItem('user', user)
-      
+
       setOutputs((prevState) => [
         ...prevState,
         <HighlightedText key={nanoid()} text={json.intro} />,
@@ -204,7 +204,9 @@ export default function Terminal({
       ]);
       console.log(json);
     }
+    focusTextArea()
   };
+
 
   const submitChallenge = async (file) => {
     const level = file.parent.level;
@@ -243,6 +245,8 @@ export default function Terminal({
       ]);
       console.log(json);
     }
+
+    focusTextArea()
   };
 
   //MARK: ------------- TERMINAL RESPONSE -------------------
@@ -661,7 +665,10 @@ export default function Terminal({
           <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt} cmd={cmd} />,
           <InvalidOutput key={nanoid()} cmd={cmd} />,
         ]);
-    }
+    } // end of switch
+
+    focusTextArea()
+
   };
 
   // MARK: HELPERS
