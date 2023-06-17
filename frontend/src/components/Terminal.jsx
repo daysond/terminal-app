@@ -77,7 +77,6 @@ export default function Terminal({
       setUserCommand("");
     }
 
-
     if (event.key === "Enter" && terminalMode === terminalModes.yesno) {
       handleYesNoSelection()
     }
@@ -114,12 +113,14 @@ export default function Terminal({
     }
 
     if (event.key === "ArrowLeft") {
+      event.preventDefault();
       const caretPosition = inputFieldReference.current.selectionStart;
       const newPos = caretPosition <= 1 ? 0 : caretPosition - 1;
       setCursorIdx(newPos);
     }
 
     if (event.key === "ArrowRight") {
+      event.preventDefault();
       const caretPosition = inputFieldReference.current.selectionStart;
       const newPos =
         caretPosition >= userCommand.length
@@ -129,13 +130,22 @@ export default function Terminal({
     }
 
     if (event.key === "Tab") {
-      console.log("tab");
+      event.preventDefault();
       const inputs = userCommand
         .trimStart()
         .split(" ")
         .filter((e) => e != "");
-      const cmd = inputs[0];
-      const arg = inputs[1];
+      
+      if(inputs.length === 1) 
+        return 
+      
+        const arg = inputs[inputs.length-1];
+      const autoCompeletedCmd = userCommand.trimEnd().slice(0, -arg.length) + findDocumentMatches(arg)
+      const len = autoCompeletedCmd.length
+
+      setUserCommand(autoCompeletedCmd)
+      inputFieldReference.current.setSelectionRange(len, len);
+      setCursorIdx(len);
     }
   };
 
@@ -271,7 +281,7 @@ export default function Terminal({
   }
 
   const response = () => {
-    console.log(`[${userCommand}]`);
+    // console.log(`[${userCommand}]`);
     const inputs = userCommand
       .trimStart()
       .split(" ")
@@ -664,9 +674,33 @@ export default function Terminal({
         setCmdPrompt('')
         break;
     }
-
-
   }
+
+  const findDocumentMatches = (input) => {
+    const matches = [];
+    const options = directory.children.map(e=>e.name)
+    for (let i = 0; i < options.length; i++) {
+      const option = options[i];
+      if (option.startsWith(input)) {
+        matches.push(option);
+      }
+    }
+    
+    if (matches.length > 1) {
+      const commonPrefix = matches[0];
+      for (let i = 1; i < matches.length; i++) {
+        const currentMatch = matches[i];
+        let j = 0;
+        while (j < commonPrefix.length && commonPrefix[j] === currentMatch[j]) {
+          j++;
+        }
+        matches[0] = commonPrefix.substring(0, j);
+      }
+    }
+    
+    return matches.slice(0, 1);
+  }
+
 
 //MARK: ---------- SET OUTPUT CMD ELEMENTS ----------
 

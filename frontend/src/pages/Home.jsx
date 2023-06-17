@@ -216,11 +216,11 @@ export const Home = () => {
             )}
    
            <div className="home-footer">
-              {user.deadline && <Countdown futureDate={user.deadline} />}
+              {user.deadline && <Countdown key={nanoid()} futureDate={user.deadline} />}
               <p>SESS Foobar</p>
               <div className="footer-contact">
                 <p> Contact:</p>
-                <InstagramIcon />
+                <InstagramIcon key={nanoid()}  />
               </div>
                
             </div>
