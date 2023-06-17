@@ -26,6 +26,7 @@ export default function Terminal({
   directory,
   setDirectory,
   setDeadline,
+  deadline
 }) {
   const { logout } = useLogout();
 
