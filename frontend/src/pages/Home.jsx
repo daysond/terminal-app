@@ -31,8 +31,8 @@ export const Home = () => {
 
   const [directory, setDirectory] = useState(null)
   const [responseErr, setResponseErr] = useState(null)
-
   const { user } = useAuthContext()
+  const [deadline, setDeadline] = useState(user.deadline)
   const username = user.email.split("@")[0]
 
   useEffect(() => {
@@ -161,6 +161,7 @@ export const Home = () => {
     setDirectory,
     filesystemRootRef,
     user,
+    setDeadline,
   };
 
   return (
@@ -216,7 +217,7 @@ export const Home = () => {
             )}
    
            <div className="home-footer">
-              {user.deadline && <Countdown key={nanoid()} futureDate={user.deadline} />}
+              {deadline && <Countdown key={nanoid()} futureDate={deadline} />}
               <p>SESS Foobar</p>
               <div className="footer-contact">
                 <p> Contact:</p>

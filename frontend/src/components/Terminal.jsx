@@ -25,6 +25,7 @@ export default function Terminal({
   user,
   directory,
   setDirectory,
+  setDeadline,
 }) {
   const { logout } = useLogout();
 
@@ -175,6 +176,12 @@ export default function Terminal({
       setTerminalMode(terminalModes.normal);
       console.log(json.intro);
       setDirectory(createFS(json.challenge, null));
+      setDeadline(json.deadline)
+
+      const user = localStorage.getItem('user')
+      user.deadline = deadline
+      localStorage.setItem('user', user)
+      
       setOutputs((prevState) => [
         ...prevState,
         <HighlightedText key={nanoid()} text={json.intro} />,

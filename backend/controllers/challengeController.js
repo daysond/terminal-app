@@ -68,7 +68,7 @@ exports.requestNewChallenge = async (req, res) => {
             user.deadline = deadline
             user.challenge = challenge
             await user.save()
-            res.status(200).json({challenge: user.challenge, intro: newChallenge.intro, name: newChallenge.name, timeLimit: newChallenge.timeLimit })
+            res.status(200).json({challenge: user.challenge, intro: newChallenge.intro, name: newChallenge.name, timeLimit: newChallenge.timeLimit, deadline: deadline })
 
         } else {
 
