@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { nanoid } from "nanoid";
-import { WelcomeBanner } from "../components/Output";
+import { Message, WelcomeBanner } from "../components/Output";
 import Split from "react-split";
 import AceEditor from "react-ace";
 import "ace-builds/src-noconflict/mode-python";
@@ -13,24 +13,19 @@ import { getOperatingSystem, getTime } from "../util/OS";
 import { absRoot, createFS } from "../util/filesystem";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useAuthContext } from "../hooks/useAuthContext";
-import { ErrorPage } from "./ErrorPage";
 import { useLogout } from "../hooks/useLogout";
 import { MountingPrompt, HighlightedText } from "../command";
 import Countdown from "../components/Countdown";
 import InstagramIcon from "../components/InstagramIcon";
+import ConfirmPopup from "../components/ConfirmPopup";
+import "./auth.css";
 
 export const Home = () => {
   const [os, setOS] = useState("Unknown");
-
-  const { logout } = useLogout();
   const [outputs, setOutputs] = useState([]);
   const [previousCmds, setPreviousCmds] = useState([]);
   const filesystemRootRef = useRef(absRoot);
-  // REVIEW:  get file system before home is loaded..?
-  // TODO: CHANGE NEEDED
-
   const [directory, setDirectory] = useState(null);
-  const [responseErr, setResponseErr] = useState(null);
   const { user } = useAuthContext();
   const [deadline, setDeadline] = useState(user.deadline);
   const username = user.email.split("@")[0];
@@ -53,25 +48,20 @@ export const Home = () => {
 
       if (response.ok) {
         console.log("[DEBUG] Got challenges ", json);
-        // setFilesystemJSON(json)
         setDirectory(createFS(json, null));
-
         setOutputs((prev) => [
           ...prev,
           <HighlightedText
             key={nanoid()}
-            text={
-              json.children.filter((e) => e.name === "journal.txt")[0].content
-            }
-          />,
+            text={json.children.filter((e) => e.name === "journal.txt")[0].content } />,
         ]);
       } else {
-        setResponseErr({
-          status: response.status,
-          message: json.message,
-          action: logout,
-          actionName: " Go Home ",
-        });
+        setOutputs((prev) => [
+          ...prev,
+          <Message
+            key={nanoid()}
+            msg={ `${response.status}: ${json.message}`} />,
+        ]);
       }
     };
 
@@ -87,6 +77,8 @@ export const Home = () => {
   const [editorFile, setEditorFile] = useState({});
   const [lastSaved, setLastSaved] = useState("");
 
+  const [isConfirmPopupOpen, setConfirmPopupOpen] = useState(false);
+
   const handleEditorChange = (newValue) => {
     setEditorText(newValue);
   };
@@ -98,8 +90,12 @@ export const Home = () => {
     setEditorText(value.content);
   };
 
-  // MARK: ========== API CALLS ===========
 
+  const handleClosePopup = () => {
+    setConfirmPopupOpen(false);
+  };
+
+  // MARK: ========== API CALLS ===========
   const savefile = async (level, content) => {
     setLastSaved(`Saving...`);
     const requestOptions = {
@@ -119,9 +115,7 @@ export const Home = () => {
     const json = await response.json();
 
     if (response.ok) {
-      // setFilesystemJSON(json)
-      // console.log(json);
-      // setDirectory(createFS(json, null))
+      editorFile.content = content
       setLastSaved(`Last saved: ${getTime()}`);
     } else {
       setLastSaved(`Error saving file: ${json.message}`);
@@ -130,15 +124,18 @@ export const Home = () => {
 
   // ======================================
 
+  const closeEditor = () => {
+        setLastSaved("");
+        setEditorText("");
+        setEditorMode(false);
+  }
+
   const editorCommands = [
     {
       name: "close",
       bindKey: { win: "Ctrl-E", mac: "Cmd-E" },
-      exec: () => {
-        console.log("🚀, closing file.");
-        setLastSaved("");
-        setEditorText("");
-        setEditorMode(false);
+      exec: (editor) => {
+        editorFile.content.trimEnd() === editor.getValue().trimEnd() ? closeEditor() : setConfirmPopupOpen(true)
       },
     },
     {
@@ -148,9 +145,6 @@ export const Home = () => {
         const content = editor.getValue();
         const level = editorFile.parent.level;
         savefile(level, content);
-        // console.log(editorFile.parent.level)
-        editorFile.content = editor.getValue();
-
         console.log("🚀,  file saved.");
       },
     },
@@ -174,9 +168,6 @@ export const Home = () => {
   return (
     <BrowserRouter>
       <Routes>
-        {/* {!user || responseErr || !directory ? (
-          <Route path="/" element={<ErrorPage error={responseErr} />}></Route>
-        ) : ( */}
         <Route
           path="/"
           element={
@@ -235,6 +226,7 @@ export const Home = () => {
                   <InstagramIcon key={nanoid()} />
                 </div>
               </div>
+              <ConfirmPopup  key={nanoid()} isOpen={isConfirmPopupOpen} onClose={handleClosePopup} title={"Are you sure?"} message={"You have unsaved changes."} confirmAction={closeEditor}/>
             </div>
           }
         ></Route>

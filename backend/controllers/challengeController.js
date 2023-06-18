@@ -33,7 +33,7 @@ exports.requestNewChallenge = async (req, res) => {
         const questionLevel = user.question
         const newLevel = userLevel + 1
         const newQuestionLevel = questionLevel + 1
-
+        console.log(user)
         // checks user level, 0? no futher checking
         let userEligible = userLevel === 0 && questionLevel === 0
 
@@ -51,9 +51,12 @@ exports.requestNewChallenge = async (req, res) => {
                 const newChallenges = await ChallengeModel.find({level: newLevel, year: currentYear}, {_id:0}).lean()
                 user.totalLevelQuestions = newChallenges.length
                 newChallenge = newChallenges.filter(e=>e.question===1)[0]
+                user.level = newLevel
+                user.question = 1
 
             } else {
                 newChallenge = await ChallengeModel.findOne({level: userLevel, question: newQuestionLevel, year: currentYear}, {_id:0}).lean()
+                user.question = newQuestionLevel
             }
 
             newChallenge.parent = user.email.split("@")[0]
@@ -63,7 +66,7 @@ exports.requestNewChallenge = async (req, res) => {
             const challenge = user.challenge 
             challenge.children.unshift(ChallengeToSolution(newChallenge))
             challenge.children.filter(e=>e.name==='journal.txt')[0].content += `\n${newChallenge.intro}`
-            user.level = newLevel
+            
             user.status = 'started'
             user.deadline = deadline
             user.challenge = challenge
@@ -162,7 +165,7 @@ exports.submitChallenge = async (req, res) => {
         const response = await fetch("http://159.203.11.15:5001/submit", requestOptions) // REVIEW: USED FOR DEV
         const json = await response.json()
         const {status, data} = json
-        console.log("got res, json", status, data)
+        // console.log("got res, json", status, data)
         // {
         //     status: 'ok',
         //     data: 'http://159.203.11.15:5001/results/5b17bb811ce012aa6c49'
@@ -173,7 +176,7 @@ exports.submitChallenge = async (req, res) => {
 
             fetch(data).then(result => {
                 statusCode = result.status
-                console.log(statusCode)
+                // console.log(statusCode)
                 if (statusCode === 200) {
                     return result.json();
                   } else if (statusCode === 500) {
@@ -186,6 +189,7 @@ exports.submitChallenge = async (req, res) => {
                 if(output === 'passed'){
                     user.status = output
                     user.challenge.children = user.challenge.children.filter(e => e.type === 'file')
+                    user.deadline = null
                 } else {
                     console.log('failed')
                 }
@@ -199,8 +203,11 @@ exports.submitChallenge = async (req, res) => {
                 // res.status(200).json({result: "123"})
             }).then(output => {
                 console.log("output ", output)
-                res.status(200).json({result: output})
-
+                if(output === 'passed'){
+                    res.status(200).json({result: output, challenge: user.challenge, deadline: null})
+                } else {
+                    res.status(200).json({result: 'failed'})
+                }
             }).catch(error => {
                 // status code 202
                  if (error.message === 'Unknown status code.') {
