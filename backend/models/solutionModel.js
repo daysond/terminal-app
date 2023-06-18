@@ -33,7 +33,6 @@ const solutionSchema = new Schema({
 const SolutionModel = mongoose.model("Solution", solutionSchema)
 
 const ChallengeToSolution = (challenge) => {
-    console.log("challenge ", challenge)
     const solutionRoot = new SolutionModel({
         name: challenge.name,
         type: challenge.type,

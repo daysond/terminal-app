@@ -147,13 +147,16 @@ export default function Terminal({
       if (inputs.length === 1) return;
 
       const arg = inputs[inputs.length - 1];
-      const autoCompeletedCmd =
-        userCommand.trimEnd().slice(0, -arg.length) + findDocumentMatches(arg);
-      const len = autoCompeletedCmd.length;
+      const matches = findDocumentMatches(arg)
+      if (!matches.length) return
 
+      const autoCompeletedCmd =
+      userCommand.trimEnd().slice(0, -arg.length) + findDocumentMatches(arg)[0];
+      const len = autoCompeletedCmd.length;
       setUserCommand(autoCompeletedCmd);
       inputFieldReference.current.setSelectionRange(len, len);
       setCursorIdx(len);
+      
     }
   }
 
@@ -241,6 +244,10 @@ export default function Terminal({
         ...prevState,
         <InvalidOutputMsg key={nanoid()} cmd={"Submit"} msg={json.result} />,
       ]);
+      if(json.result === 'passed') {
+        setDirectory(createFS(json.challenge, null));
+        setDeadline(json.deadline)
+      }
     } else {
       //TODO: SET JSON
       setOutputs((prevState) => [
@@ -314,6 +321,7 @@ export default function Terminal({
         ]);
         break;
 
+        //TODO: ls asdas, shows ls result... validate arg as well.
       case "ls":
         setOutputs((prevState) => [
           ...prevState,
