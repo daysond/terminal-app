@@ -37,6 +37,8 @@ export default function Terminal({
   const username = user.email.split("@")[0];
   const [cmdPrompt, setCmdPrompt] = useState("");
 
+  const [caretPosition, setCaretPosition] = useState(null)
+
   const terminalModes = {
     normal: "NORMAL",
     disable: "DISABLE",
@@ -44,25 +46,23 @@ export default function Terminal({
   };
   const [terminalMode, setTerminalMode] = useState(terminalModes.normal);
 
+// MARK: ---------------------------- USEEFFECT --------------------------------------------------
   useEffect(() => {
     updateCommandPrompt(
       directory ? (directory.name === username ? "" : directory.name) : ""
     );
-  }, [directory]);
+  }, [terminalMode, directory]);
 
-  useEffect(() => {
-    updateCommandPrompt(
-      directory ? (directory.name === username ? "" : directory.name) : ""
-    );
-  }, [terminalMode]);
+  useEffect(()=> {
+    setCursorIdx(caretPosition);
+  }, [caretPosition])
 
-  // Handle user command
+
+  // MARK: ---------------------- Handle user command ---------------------------------------------
   const handleChange = (event) => {
     setUserCommand(event.target.value.replace(/\r?\n|\r/g, ""));
-    // const {selectionStart} = event.target
-    // console.log(selectionStart)
-    setCursorIdx(inputFieldReference.current.selectionStart);
-    // console.log(event.target.value)
+    const {selectionStart} = event.target
+    setCaretPosition(selectionStart)
   };
 
   const handleKeyDown = (event) => {
@@ -85,30 +85,32 @@ export default function Terminal({
     }
 
     if (event.key === "ArrowUp") {
-      event.preventDefault();
+      event.preventDefault()
 
-      if (!previousCmds.length) return;
+      if (!previousCmds.length) return
 
       const newIdx =
         currentCmdIdx + 1 === previousCmds.length
           ? currentCmdIdx
           : currentCmdIdx + 1;
 
-      setCurrentCmdIdx(newIdx);
-      setUserCommand(previousCmds[newIdx]);
+      setCurrentCmdIdx(newIdx)
+      setUserCommand(previousCmds[newIdx])
 
-      const len = previousCmds[newIdx]?.length;
+      const len = previousCmds[newIdx]?.length
       inputFieldReference.current.setSelectionRange(len, len);
       setCursorIdx(len);
     }
 
     if (event.key === "ArrowDown") {
-      event.preventDefault();
+      event.preventDefault()
+      if(!previousCmds.length) return
+
       const newIdx = currentCmdIdx - 1 <= -1 ? -1 : currentCmdIdx - 1;
       setCurrentCmdIdx(newIdx);
       setUserCommand(newIdx === -1 ? "" : previousCmds[newIdx]);
 
-      const len = previousCmds[newIdx]?.length;
+      const len = previousCmds[newIdx]?.length
       if (newIdx !== -1) {
         inputFieldReference.current.setSelectionRange(len, len);
         setCursorIdx(len);
@@ -116,22 +118,23 @@ export default function Terminal({
     }
 
     if (event.key === "ArrowLeft") {
-
-      const caretPosition = inputFieldReference.current.selectionStart;
-      console.log(caretPosition)
-      const newPos = caretPosition <= 1 ? 0 : caretPosition - 1;
-      setCursorIdx(newPos);
+      const caretPosition = inputFieldReference.current.selectionStart
+      setCaretPosition(caretPosition <= 1 ? 0 : caretPosition - 1)
     }
 
     if (event.key === "ArrowRight") {
+      setCaretPosition(
+        inputFieldReference.current.selectionStart >= userCommand.length
+            ? userCommand.length
+            : caretPosition + 1)
+    }
 
-      const caretPosition = inputFieldReference.current.selectionStart;
-      console.log(caretPosition)
-      const newPos =
-        caretPosition >= userCommand.length
-          ? userCommand.length
-          : caretPosition + 1;
-      setCursorIdx(newPos);
+    if (event.key === "End") {
+      setCaretPosition(userCommand.length)
+    }
+
+    if(event.key === 'Home') {
+      setCaretPosition(0)
     }
 
     if (event.key === "Tab") {
@@ -152,13 +155,10 @@ export default function Terminal({
       inputFieldReference.current.setSelectionRange(len, len);
       setCursorIdx(len);
     }
-  };
+  }
 
-  const focusTextArea = () => {
-    inputFieldReference.current.focus();
-  };
 
-  //MARK: ---------- API HELPERS ----------
+  //MARK: ------------------------------------ API HELPERS ----------------------------------------
 
   const requestNewChallenge = async () => {
     const requestOptions = {
@@ -253,7 +253,7 @@ export default function Terminal({
     focusTextArea();
   };
 
-  //MARK: ------------- TERMINAL RESPONSE -------------------
+  //MARK: -------------------------------- TERMINAL RESPONSE --------------------------------------
 
   const handleYesNoSelection = () => {
     const action = previousCmds[0];
@@ -663,6 +663,13 @@ export default function Terminal({
       case "logout":
         logout();
         break;
+
+      case undefined:
+        setOutputs((prevState) => [
+          ...prevState,
+          <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt} cmd={''} />,
+        ]);
+        break;
       default:
         setOutputs((prevState) => [
           ...prevState,
@@ -674,7 +681,7 @@ export default function Terminal({
     focusTextArea();
   };
 
-  // MARK: HELPERS
+  // MARK:----------------------------------- HELPERS ----------------------------------------------
   const updateCommandPrompt = (currentDir) => {
   
 
@@ -716,7 +723,12 @@ export default function Terminal({
     return matches.slice(0, 1);
   };
 
-  //MARK: ---------- SET OUTPUT CMD ELEMENTS ----------
+  const focusTextArea = () => {
+    inputFieldReference.current.focus();
+  }
+
+
+  //MARK: ------------------------------ SET OUTPUT CMD ELEMENTS -------------------------------------
 
   const cmd = userCommand?.split("").map((c, index) =>
     index === cursorIdx ? (
@@ -735,13 +747,12 @@ export default function Terminal({
     )
   );
 
-  // console.log(cursorIdx)
   if (cursorIdx === userCommand.length || userCommand === "") {
     cmd.push(
       <span key={nanoid()} className="cmd-cursor cmd-blink">
         <span data-text="" className="end">
           <span>
-            &nbsp;<span></span>
+            &nbsp;
           </span>
         </span>
       </span>
