@@ -59,6 +59,8 @@ export default function Terminal({
   // Handle user command
   const handleChange = (event) => {
     setUserCommand(event.target.value.replace(/\r?\n|\r/g, ""));
+    // const {selectionStart} = event.target
+    // console.log(selectionStart)
     setCursorIdx(inputFieldReference.current.selectionStart);
     // console.log(event.target.value)
   };
@@ -116,6 +118,7 @@ export default function Terminal({
     if (event.key === "ArrowLeft") {
 
       const caretPosition = inputFieldReference.current.selectionStart;
+      console.log(caretPosition)
       const newPos = caretPosition <= 1 ? 0 : caretPosition - 1;
       setCursorIdx(newPos);
     }
@@ -123,6 +126,7 @@ export default function Terminal({
     if (event.key === "ArrowRight") {
 
       const caretPosition = inputFieldReference.current.selectionStart;
+      console.log(caretPosition)
       const newPos =
         caretPosition >= userCommand.length
           ? userCommand.length
@@ -672,14 +676,13 @@ export default function Terminal({
 
   // MARK: HELPERS
   const updateCommandPrompt = (currentDir) => {
-    console.log("updating... ", terminalMode);
+  
 
     switch (terminalMode) {
       case terminalModes.normal:
         setCmdPrompt(`foobar:~/${currentDir} ${username}$ `);
         break;
       case terminalModes.yesno:
-        console.log("setting prompt to y n");
         setCmdPrompt(`[Y]es or [N]o: `);
         break;
       default:
