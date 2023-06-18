@@ -114,14 +114,12 @@ export default function Terminal({
     }
 
     if (event.key === "ArrowLeft") {
-      event.preventDefault();
       const caretPosition = inputFieldReference.current.selectionStart;
       const newPos = caretPosition <= 1 ? 0 : caretPosition - 1;
       setCursorIdx(newPos);
     }
 
     if (event.key === "ArrowRight") {
-      event.preventDefault();
       const caretPosition = inputFieldReference.current.selectionStart;
       const newPos =
         caretPosition >= userCommand.length
