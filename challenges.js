@@ -225,10 +225,42 @@ const fs = [{
     //     ]
     // }
 
-    // {
-    //     "level": "1",
-    //     "year": "2023",
-    //     "challengeName": "solar-doomsday",
-    //     "question": "1",
-    //     "code": "\n\nimport unittest\nfrom unittest import mock\nimport json\n\n\nclass SolutionTestCase(unittest.TestCase):\n    def test_solution_positive_numbers(self):\n        expected = 15\n        with mock.patch('builtins.print'):\n            result = solution(5, 10)\n\n        self.assertEqual(result, expected)\n\n\n    def test_solution_negative_numbers(self):\n        expected = -15\n        with mock.patch('builtins.print'):\n            result = solution(-5, -10)\n        self.assertEqual(result, expected)\n\n    def test_solution_zero(self):\n        expected = 0\n        with mock.patch('builtins.print'):\n            result = solution(0, 0)\n        self.assertEqual(result, expected)\n\n        \nclass CustomTestResult(unittest.TestResult):\n    def __init__(self, *args, **kwargs):\n        super().__init__(*args, **kwargs)\n        self.test_results = {}\n        self.result = 'ok'\n\n    def addSuccess(self, test):\n        self.test_results[test] = \"passed\"\n\n    def addFailure(self, test, err):\n        self.test_results[test] = \"failed\"\n        self.result = 'failed'\n\n    def print_test_results(self):\n        \n        test_results = [\n            f\"Test{index+1}: {result}\"\n            for index, (_, result) in enumerate(self.test_results.items())\n        ]\n        output = {\n            'result': self.result,\n            'output': '\\n'.join(test_results)\n        }\n        json_output = json.dumps(output)\n        print(json_output)\n        # print(f\"json_output: {json_output}\")\n        # print('\\n'.join(test_results))\n\n\nif __name__ == '__main__':\n    suite = unittest.TestLoader().loadTestsFromTestCase(SolutionTestCase)\n    result = CustomTestResult()\n    suite.run(result)\n    result.print_test_results()\n    \n"
-    //   }
+    {
+        "level": 1,
+        "year": 2023,
+        "challengeName": "solar-doomsday",
+        "question": 1,
+        "code": "\nimport unittest\nfrom unittest import mock\nimport json\n\n\nclass SolutionTestCase(unittest.TestCase):\n    def test_solution_positive_numbers(self):\n        expected = 15\n        with mock.patch('builtins.print'):\n            result = solution(5, 10)\n\n        self.assertEqual(result, expected)\n\n\n    def test_solution_negative_numbers(self):\n        expected = -15\n        with mock.patch('builtins.print'):\n            result = solution(-5, -10)\n        self.assertEqual(result, expected)\n\n    def test_solution_zero(self):\n        expected = 0\n        with mock.patch('builtins.print'):\n            result = solution(0, 0)\n        self.assertEqual(result, expected)\n\n        \nclass CustomTestResult(unittest.TestResult):\n    def __init__(self, *args, **kwargs):\n        super().__init__(*args, **kwargs)\n        self.test_results = {}\n        self.results = []\n        self.status = ''\n\n    def addSuccess(self, test):\n        self.test_results[test] = \"passed\"\n\n    def addFailure(self, test, err):\n        self.test_results[test] = \"failed\"\n    \n    def populateResult(self):\n        if self.test_results and all(result == \"passed\" for result in self.test_results.values()):\n            self.status = 'passed'\n        else:\n            self.status = 'failed'\n        for index, (_, result) in enumerate(self.test_results.items()):\n            self.results.append({ \"test\": \"Test \" + str(index+1), \"result\" : result })\n            \n    def print_test_results(self):\n        self.populateResult()\n        output = {\"status\": self.status, \"results\": self.results}\n        json_output=json.dumps(output)\n        print(json_output)\n    \n\nif __name__ == '__main__':\n    suite = unittest.TestLoader().loadTestsFromTestCase(SolutionTestCase)\n    result = CustomTestResult()\n    suite.run(result)\n    result.print_test_results()\n    "
+      }
+
+    self.test_output = [f"Test{index+1}: {result}" for index, (_, result) in enumerate(self.test_results.items())]
+
+    Output: 
+ {
+  status: 'ok',
+  data: {
+    output: '',
+    stderr: 'Traceback (most recent call last):\n' +
+      '  File "source.txt", line 62, in <module>\n' +
+      '    result.print_test_results()\n' +
+      '  File "source.txt", line 52, in print_test_results\n' +
+      '    self.populateResult()\n' +
+      '  File "source.txt", line 49, in populateResult\n' +
+      '    self.test_output.append("Test"+ index+1 + ": " + result)\n' +
+      "TypeError: Can't convert 'int' object to str implicitly\n",
+    status: 'error\n',
+    submission_id: 'e01507f1e95134171cda'
+  }
+}
+
+
+Output: 
+{
+ status: 'ok',
+ data: {
+   output: '{"result": "ok", "output": "Test1: passed\\nTest2: passed\\nTest3: passed"}\n',
+   stderr: '',
+   status: 'success\n',
+   submission_id: '913bef475d9d7e087cb2'
+ }
+}

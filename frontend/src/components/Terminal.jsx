@@ -1,5 +1,5 @@
 import { nanoid } from "nanoid";
-import { RequestWarning, help, start, verifyCode } from "../command";
+import { AllTestPassed, RequestWarning, SubmissionWarning, TestCaseResult, help, start, verifyCode } from "../command";
 import {
   InvalidOutput,
   EchoCmd,
@@ -37,7 +37,7 @@ export default function Terminal({
   const username = user.email.split("@")[0];
   const [cmdPrompt, setCmdPrompt] = useState("");
 
-  const [caretPosition, setCaretPosition] = useState(null)
+  const [caretPosition, setCaretPosition] = useState(null);
 
   const terminalModes = {
     normal: "NORMAL",
@@ -46,23 +46,22 @@ export default function Terminal({
   };
   const [terminalMode, setTerminalMode] = useState(terminalModes.normal);
 
-// MARK: ---------------------------- USEEFFECT --------------------------------------------------
+  // MARK: ---------------------------- USEEFFECT --------------------------------------------------
   useEffect(() => {
     updateCommandPrompt(
       directory ? (directory.name === username ? "" : directory.name) : ""
     );
   }, [terminalMode, directory]);
 
-  useEffect(()=> {
+  useEffect(() => {
     setCursorIdx(caretPosition);
-  }, [caretPosition])
-
+  }, [caretPosition]);
 
   // MARK: ---------------------- Handle user command ---------------------------------------------
   const handleChange = (event) => {
     setUserCommand(event.target.value.replace(/\r?\n|\r/g, ""));
-    const {selectionStart} = event.target
-    setCaretPosition(selectionStart)
+    const { selectionStart } = event.target;
+    setCaretPosition(selectionStart);
   };
 
   const handleKeyDown = (event) => {
@@ -85,32 +84,32 @@ export default function Terminal({
     }
 
     if (event.key === "ArrowUp") {
-      event.preventDefault()
+      event.preventDefault();
 
-      if (!previousCmds.length) return
+      if (!previousCmds.length) return;
 
       const newIdx =
         currentCmdIdx + 1 === previousCmds.length
           ? currentCmdIdx
           : currentCmdIdx + 1;
 
-      setCurrentCmdIdx(newIdx)
-      setUserCommand(previousCmds[newIdx])
+      setCurrentCmdIdx(newIdx);
+      setUserCommand(previousCmds[newIdx]);
 
-      const len = previousCmds[newIdx]?.length
+      const len = previousCmds[newIdx]?.length;
       inputFieldReference.current.setSelectionRange(len, len);
       setCursorIdx(len);
     }
 
     if (event.key === "ArrowDown") {
-      event.preventDefault()
-      if(!previousCmds.length) return
+      event.preventDefault();
+      if (!previousCmds.length) return;
 
       const newIdx = currentCmdIdx - 1 <= -1 ? -1 : currentCmdIdx - 1;
       setCurrentCmdIdx(newIdx);
       setUserCommand(newIdx === -1 ? "" : previousCmds[newIdx]);
 
-      const len = previousCmds[newIdx]?.length
+      const len = previousCmds[newIdx]?.length;
       if (newIdx !== -1) {
         inputFieldReference.current.setSelectionRange(len, len);
         setCursorIdx(len);
@@ -118,23 +117,24 @@ export default function Terminal({
     }
 
     if (event.key === "ArrowLeft") {
-      const caretPosition = inputFieldReference.current.selectionStart
-      setCaretPosition(caretPosition <= 1 ? 0 : caretPosition - 1)
+      const caretPosition = inputFieldReference.current.selectionStart;
+      setCaretPosition(caretPosition <= 1 ? 0 : caretPosition - 1);
     }
 
     if (event.key === "ArrowRight") {
       setCaretPosition(
         inputFieldReference.current.selectionStart >= userCommand.length
-            ? userCommand.length
-            : caretPosition + 1)
+          ? userCommand.length
+          : caretPosition + 1
+      );
     }
 
     if (event.key === "End") {
-      setCaretPosition(userCommand.length)
+      setCaretPosition(userCommand.length);
     }
 
-    if(event.key === 'Home') {
-      setCaretPosition(0)
+    if (event.key === "Home") {
+      setCaretPosition(0);
     }
 
     if (event.key === "Tab") {
@@ -147,19 +147,18 @@ export default function Terminal({
       if (inputs.length === 1) return;
 
       const arg = inputs[inputs.length - 1];
-      const matches = findDocumentMatches(arg)
-      if (!matches.length) return
+      const matches = findDocumentMatches(arg);
+      if (!matches.length) return;
 
       const autoCompeletedCmd =
-      userCommand.trimEnd().slice(0, -arg.length) + findDocumentMatches(arg)[0];
+        userCommand.trimEnd().slice(0, -arg.length) +
+        findDocumentMatches(arg)[0];
       const len = autoCompeletedCmd.length;
       setUserCommand(autoCompeletedCmd);
       inputFieldReference.current.setSelectionRange(len, len);
       setCursorIdx(len);
-      
     }
-  }
-
+  };
 
   //MARK: ------------------------------------ API HELPERS ----------------------------------------
 
@@ -173,7 +172,7 @@ export default function Terminal({
     };
 
     const response = await fetch(
-      "http://159.203.11.15:4000/api/challenge/request",
+      "http://localhost:4000/api/challenge/request",
       requestOptions
     );
 
@@ -216,10 +215,8 @@ export default function Terminal({
   };
 
   const submitChallenge = async (file) => {
-    const level = file.parent.level;
-    const code = file.content;
 
-    console.log("submiting", code);
+    const code = file.content;
 
     const requestOptions = {
       method: "POST",
@@ -227,43 +224,104 @@ export default function Terminal({
         "Content-Type": "application/json",
         authorization: `Bearer ${user?.token}`,
       },
-      body: JSON.stringify({ level, code }),
+      body: JSON.stringify({ code }),
     };
-
+    console.log("submiting", requestOptions.body);
     const response = await fetch(
-      "http://159.203.11.15:4000/api/challenge/submit",
+      "http://localhost:4000/api/challenge/submit",
       requestOptions
     );
 
     const json = await response.json();
-
+    console.log(json);
     if (response.ok) {
       // console.log(json);
       // file.editable = false;
-      setOutputs((prevState) => [
-        ...prevState,
-        <InvalidOutputMsg key={nanoid()} cmd={"Submit"} msg={json.result} />,
-      ]);
-      if(json.result === 'passed') {
+      if (json.status === "passed") {
+        setOutputs((prevState) => [
+          ...prevState,
+          <AllTestPassed key={nanoid()} />,
+        ]);
         setDirectory(createFS(json.challenge, null));
-        setDeadline(json.deadline)
+        setDeadline(json.deadline);
+      } else {
+        setOutputs((prevState) => [
+          ...prevState,
+          <HTMLRenderer key={nanoid()} htmlString = { `<p class='term-warning'> ${json.result} </p>`} />,
+        ]);
       }
     } else {
       //TODO: SET JSON
       setOutputs((prevState) => [
         ...prevState,
-        <InvalidOutputMsg key={nanoid()} cmd={"Submit"} msg={json.message} />,
+        <HTMLRenderer key={nanoid()} htmlString = { `<p class='term-warning'>${json.message}</p> `} />,
       ]);
       console.log(json);
     }
-
+    setTerminalMode(terminalModes.normal);
     focusTextArea();
   };
 
+  const verifyChallenge = async (file) => {
+
+    const code = file.content;
+
+    const requestOptions = {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        authorization: `Bearer ${user?.token}`,
+      },
+      body: JSON.stringify({ code }),
+    };
+
+    const response = await fetch(
+      "http://localhost:4000/api/challenge/verify",
+      requestOptions
+    );
+
+    const json = await response.json();
+    console.log(json);
+    if (response.ok) {
+ 
+      if (json.status === "passed") {
+        setOutputs((prevState) => [
+          ...prevState,
+          <AllTestPassed key={nanoid()} />,
+        ])
+      } else if (json.status === 'failed') {
+        setOutputs((prevState) => [
+          ...prevState,
+          <TestCaseResult result={json.result} key={nanoid()} />,
+        ])
+      } else {
+        setOutputs((prevState) => [
+          ...prevState,
+          <HTMLRenderer key={nanoid()} htmlString = { `<p class='term-warning'> ${json.result} </p>`} />,
+        ]);
+      }
+ 
+  
+    } else {
+      //TODO: SET JSON
+      setOutputs((prevState) => [
+        ...prevState,
+        <HTMLRenderer key={nanoid()} htmlString = { `<p class='term-warning'>${json.message}</p> `} />,
+      ]);
+      console.log(json);
+    }
+    setTerminalMode(terminalModes.normal);
+    focusTextArea();
+  };
+
+
   //MARK: -------------------------------- TERMINAL RESPONSE --------------------------------------
 
-  const handleYesNoSelection = () => {
-    const action = previousCmds[0];
+  const handleYesNoSelection = (arg) => {
+    const action = previousCmds[0].trimStart()
+    .split(" ")
+    .filter((e) => e != "")[0];
+    console.log("handling action", action)
     switch (userCommand.toUpperCase()) {
       case "Y":
         let msg = "";
@@ -272,9 +330,15 @@ export default function Terminal({
           msg = "Requesting new challenge...";
         }
         if (action === "submit") {
-          submitChallenge(file);
+          submitChallenge(directory.children.filter(f=>f.name==="solution.py")[0]);
           msg = "Submitting solution...";
         }
+
+        if(action === "verify") {
+          verifyChallenge(directory.children.filter(f=>f.name==="solution.py")[0]);
+          msg = "Verifying solution..."
+        }
+
         setTerminalMode(terminalModes.disable);
         setOutputs((prevState) => [
           ...prevState,
@@ -321,7 +385,7 @@ export default function Terminal({
         ]);
         break;
 
-        //TODO: ls asdas, shows ls result... validate arg as well.
+      //TODO: ls asdas, shows ls result... validate arg as well.
       case "ls":
         setOutputs((prevState) => [
           ...prevState,
@@ -414,7 +478,7 @@ export default function Terminal({
             return;
           }
 
-          if (arg === ".." && tempDir.name === "root") {
+          if (arg === ".." && tempDir.name === username) {
             setOutputs((prevState) => [
               ...prevState,
               <EchoCmd
@@ -502,73 +566,14 @@ export default function Terminal({
         break;
 
       case "edit":
-        if (!arg) {
+        findFileWithTarget(cmd, arg, (arg)=> { 
           setOutputs((prevState) => [
             ...prevState,
             <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt} cmd={userCommand} />,
-            <InvalidOutputMsg
-              key={nanoid()}
-              cmd={userCommand}
-              msg={"No such file or directory"}
-            />,
           ]);
-        } else {
-          const file = directory.children.filter((e) => e.name === arg)[0];
+          openEditor(arg); 
+        })
 
-          if (!file) {
-            setOutputs((prevState) => [
-              ...prevState,
-              <EchoCmd
-                key={nanoid()}
-                cmdPrompt={cmdPrompt}
-                cmd={userCommand}
-              />,
-              <InvalidOutputMsg
-                key={nanoid()}
-                cmd={cmd}
-                msg={`${arg}: No such file or directory`}
-              />,
-            ]);
-          } else if (file.isFolder) {
-            setOutputs((prevState) => [
-              ...prevState,
-              <EchoCmd
-                key={nanoid()}
-                cmdPrompt={cmdPrompt}
-                cmd={userCommand}
-              />,
-              <InvalidOutputMsg
-                key={nanoid()}
-                cmd={cmd}
-                msg={`${arg} is a directory`}
-              />,
-            ]);
-          } else if (!file.editable) {
-            setOutputs((prevState) => [
-              ...prevState,
-              <EchoCmd
-                key={nanoid()}
-                cmdPrompt={cmdPrompt}
-                cmd={userCommand}
-              />,
-              <InvalidOutputMsg
-                key={nanoid()}
-                cmd={cmd}
-                msg={`${arg} is not editable`}
-              />,
-            ]);
-          } else {
-            setOutputs((prevState) => [
-              ...prevState,
-              <EchoCmd
-                key={nanoid()}
-                cmdPrompt={cmdPrompt}
-                cmd={userCommand}
-              />,
-            ]);
-            openEditor(file);
-          }
-        }
         break;
 
       case "request":
@@ -590,83 +595,27 @@ export default function Terminal({
         break;
 
       case "submit":
-        // TODO: REFACTOR CODE ... SAME CODE AS EDIT, only solution.py is submittable, check name?
-        if (!arg) {
+        findFileWithTarget(cmd, arg, (file)=> { 
           setOutputs((prevState) => [
             ...prevState,
             <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt} cmd={userCommand} />,
-            <InvalidOutputMsg
-              key={nanoid()}
-              cmd={userCommand}
-              msg={"No such file or directory"}
-            />,
+            <SubmissionWarning key={nanoid()} />,
           ]);
-        } else {
-          const file = directory.children.filter((e) => e.name === arg)[0];
-
-          if (!file) {
-            setOutputs((prevState) => [
-              ...prevState,
-              <EchoCmd
-                key={nanoid()}
-                cmdPrompt={cmdPrompt}
-                cmd={userCommand}
-              />,
-              <InvalidOutputMsg
-                key={nanoid()}
-                cmd={cmd}
-                msg={`${arg}: No such file or directory`}
-              />,
-            ]);
-          } else if (file.isFolder) {
-            setOutputs((prevState) => [
-              ...prevState,
-              <EchoCmd
-                key={nanoid()}
-                cmdPrompt={cmdPrompt}
-                cmd={userCommand}
-              />,
-              <InvalidOutputMsg
-                key={nanoid()}
-                cmd={cmd}
-                msg={`${arg} is a directory`}
-              />,
-            ]);
-          } else if (!file.editable) {
-            setOutputs((prevState) => [
-              ...prevState,
-              <EchoCmd
-                key={nanoid()}
-                cmdPrompt={cmdPrompt}
-                cmd={userCommand}
-              />,
-              <InvalidOutputMsg
-                key={nanoid()}
-                cmd={cmd}
-                msg={`${arg} is not submitable`}
-              />,
-            ]);
-          } else {
-            setOutputs((prevState) => [
-              ...prevState,
-              <EchoCmd
-                key={nanoid()}
-                cmdPrompt={cmdPrompt}
-                cmd={userCommand}
-              />,
-            ]);
-            submitChallenge(file);
-          }
-        }
+          setTerminalMode(terminalModes.yesno);
+        })
+        
         break;
 
       case "verify":
-        console.log(verifyCode);
-        setOutputs((prevState) => [
-          ...prevState,
-          <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt} cmd={userCommand} />,
-          <HTMLRenderer htmlString={verifyCode} />,
-        ]);
+        findFileWithTarget(cmd, arg, (file)=> { 
+          verifyChallenge(file);
+          setTerminalMode(terminalModes.disable);
+          setOutputs((prevState) => [
+            ...prevState,
+            <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt} cmd={userCommand} />,
+            <Message key={nanoid()} msg={"Verifying solution..."} />,
+          ]);
+        })
         break;
       case "logout":
         logout();
@@ -675,7 +624,7 @@ export default function Terminal({
       case undefined:
         setOutputs((prevState) => [
           ...prevState,
-          <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt} cmd={''} />,
+          <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt} cmd={""} />,
         ]);
         break;
       default:
@@ -690,9 +639,70 @@ export default function Terminal({
   };
 
   // MARK:----------------------------------- HELPERS ----------------------------------------------
-  const updateCommandPrompt = (currentDir) => {
-  
 
+  const findFileWithTarget = (cmd, arg, target) => {
+    if (!arg) {
+      setOutputs((prevState) => [
+        ...prevState,
+        <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt} cmd={userCommand} />,
+        <InvalidOutputMsg
+          key={nanoid()}
+          cmd={userCommand}
+          msg={"No such file or directory"}
+        />,
+      ]);
+    } else {
+      const file = directory.children.filter((e) => e.name === arg)[0];
+
+      if (!file) {
+        setOutputs((prevState) => [
+          ...prevState,
+          <EchoCmd
+            key={nanoid()}
+            cmdPrompt={cmdPrompt}
+            cmd={userCommand}
+          />,
+          <InvalidOutputMsg
+            key={nanoid()}
+            cmd={cmd}
+            msg={`${arg}: No such file or directory`}
+          />,
+        ]);
+      } else if (file.isFolder) {
+        setOutputs((prevState) => [
+          ...prevState,
+          <EchoCmd
+            key={nanoid()}
+            cmdPrompt={cmdPrompt}
+            cmd={userCommand}
+          />,
+          <InvalidOutputMsg
+            key={nanoid()}
+            cmd={cmd}
+            msg={`${arg} is a directory`}
+          />,
+        ]);
+      } else if (!file.editable) {
+        setOutputs((prevState) => [
+          ...prevState,
+          <EchoCmd
+            key={nanoid()}
+            cmdPrompt={cmdPrompt}
+            cmd={userCommand}
+          />,
+          <InvalidOutputMsg
+            key={nanoid()}
+            cmd={cmd}
+            msg={`${arg} is systemt file.`}
+          />,
+        ]);
+      } else {
+        target(file)
+      }
+    }
+  }
+
+  const updateCommandPrompt = (currentDir) => {
     switch (terminalMode) {
       case terminalModes.normal:
         setCmdPrompt(`foobar:~/${currentDir} ${username}$ `);
@@ -733,8 +743,7 @@ export default function Terminal({
 
   const focusTextArea = () => {
     inputFieldReference.current.focus();
-  }
-
+  };
 
   //MARK: ------------------------------ SET OUTPUT CMD ELEMENTS -------------------------------------
 
@@ -759,9 +768,7 @@ export default function Terminal({
     cmd.push(
       <span key={nanoid()} className="cmd-cursor cmd-blink">
         <span data-text="" className="end">
-          <span>
-            &nbsp;
-          </span>
+          <span>&nbsp;</span>
         </span>
       </span>
     );

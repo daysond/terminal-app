@@ -38,7 +38,7 @@ export const Home = () => {
     setOS(getOperatingSystem(window));
 
     const fetchFileSystem = async () => {
-      const response = await fetch("http://159.203.11.15:4000/api/challenge/", {
+      const response = await fetch("http://localhost:4000/api/challenge/", {
         headers: {
           authorization: `Bearer ${user?.token}`,
         },
@@ -53,14 +53,18 @@ export const Home = () => {
           ...prev,
           <HighlightedText
             key={nanoid()}
-            text={json.children.filter((e) => e.name === "journal.txt")[0].content } />,
+            text={
+              json.children.filter((e) => e.name === "journal.txt")[0].content
+            }
+          />,
         ]);
       } else {
         setOutputs((prev) => [
           ...prev,
           <Message
             key={nanoid()}
-            msg={ `${response.status}: ${json.message}`} />,
+            msg={`${response.status}: ${json.message}`}
+          />,
         ]);
       }
     };
@@ -90,7 +94,6 @@ export const Home = () => {
     setEditorText(value.content);
   };
 
-
   const handleClosePopup = () => {
     setConfirmPopupOpen(false);
   };
@@ -108,14 +111,14 @@ export const Home = () => {
     };
 
     const response = await fetch(
-      "http://159.203.11.15:4000/api/challenge/save",
+      "http://localhost:4000/api/challenge/save",
       requestOptions
     );
 
     const json = await response.json();
 
     if (response.ok) {
-      editorFile.content = content
+      editorFile.content = content;
       setLastSaved(`Last saved: ${getTime()}`);
     } else {
       setLastSaved(`Error saving file: ${json.message}`);
@@ -125,17 +128,19 @@ export const Home = () => {
   // ======================================
 
   const closeEditor = () => {
-        setLastSaved("");
-        setEditorText("");
-        setEditorMode(false);
-  }
+    setLastSaved("");
+    setEditorText("");
+    setEditorMode(false);
+  };
 
   const editorCommands = [
     {
       name: "close",
       bindKey: { win: "Ctrl-E", mac: "Cmd-E" },
       exec: (editor) => {
-        editorFile.content.trimEnd() === editor.getValue().trimEnd() ? closeEditor() : setConfirmPopupOpen(true)
+        editorFile.content.trimEnd() === editor.getValue().trimEnd()
+          ? closeEditor()
+          : setConfirmPopupOpen(true);
       },
     },
     {
@@ -226,7 +231,14 @@ export const Home = () => {
                   <InstagramIcon key={nanoid()} />
                 </div>
               </div>
-              <ConfirmPopup  key={nanoid()} isOpen={isConfirmPopupOpen} onClose={handleClosePopup} title={"Are you sure?"} message={"You have unsaved changes."} confirmAction={closeEditor}/>
+              <ConfirmPopup
+                key={nanoid()}
+                isOpen={isConfirmPopupOpen}
+                onClose={handleClosePopup}
+                title={"Are you sure?"}
+                message={"You have unsaved changes."}
+                confirmAction={closeEditor}
+              />
             </div>
           }
         ></Route>

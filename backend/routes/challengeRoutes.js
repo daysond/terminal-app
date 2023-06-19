@@ -23,7 +23,8 @@ router.route('/request')
 router.route('/submit')
     .post(challengeController.submitChallenge) 
 
-
+router.route('/verify')
+    .post(challengeController.verifyChallenge) 
 // Save file
 router.route('/save')
     .patch(challengeController.saveChallenge)
@@ -37,21 +38,6 @@ router.get('/progress', (req, res) => {
 })
 
 
-// Verify Code
-router.post('/verify/:id', async (req, res) => {
-
-    const {data} = req.body
-
-    try {
-        // const solution = await....
-    } catch (error) {
-        console.log(error)
-    }
-
-    res.json({
-        data: req.body
-    })
-})
 
 
 

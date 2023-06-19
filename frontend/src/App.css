@@ -91,6 +91,10 @@
     color: rgb(246, 53, 53);
   }
 
+  .term-green {
+    display: inline-block;
+    color: rgb(31, 154, 0);
+  }
   .term-blue {
     color: rgb(83, 151, 247);
   }
