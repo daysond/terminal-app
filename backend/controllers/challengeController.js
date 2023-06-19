@@ -6,6 +6,7 @@ const Tester = require('../models/testerModel')
 
 // Get all challenges
 const currentYear = new Date().getFullYear();
+const timeout = 15
 
 exports.getChallengeInstruction = async (req, res) => {
 
@@ -258,17 +259,116 @@ exports.submitChallenge = async (req, res) => {
 
 exports.verifyChallenge = async (req, res) => {
 
-  
+   const {status, json} =  await codeRunner(req.user._id._id, req.body.code)
+    res.status(status).json(json)
+
+
+    // try {
+    //     const _id = req.user._id._id
+    //     const user = await User.findOne({_id})
+    //     const challengeLevel = user.level
+    //     const questionLevel = user.question
+
+
+    //     const tester = await Tester.findOne({level: challengeLevel, question: questionLevel, year: currentYear})
+    //     const submissionCode = req.body.code + tester.code
+    //     // const submissionCode = req.body.code
+
+    //     const requestOptions = {
+    //         method: 'POST',
+    //         headers: { 
+    //           'Content-Type': 'application/json',
+    //           'authorization': `Bearer ${user?.token}` 
+    //         },
+    //         body: JSON.stringify({
+    //             src: submissionCode,
+    //             stdin:"",
+    //             lang:"python3",
+    //             timeout:5
+    //         }	)
+    //       }
+          
+    //     //MARK: ---------- Code Engine API Call ----------
+    //     // TODO: CHANGE IT BACK TO SERVICE IN PROD
+    //     // const response = await fetch("http://code-engine-server:5001/submit", requestOptions)
+    //     const response = await fetch("http://localhost:5001/submit", requestOptions) // REVIEW: USED FOR DEV
+    //     const json = await response.json()
+    //     const {status, data} = json
+   
+    //     let statusCode = 0
+    //     let attempts = 0
+    //     const fetchResult = () => {
+
+    //         fetch(data).then(result => {
+    //             statusCode = result.status
+    //             // console.log(statusCode)
+    //             if (statusCode === 200) {
+    //                 return result.json();
+    //               } else if (statusCode === 500) {
+    //                 throw new Error('System Error.');
+    //               } else {
+    //                 throw new Error('Unknown status code.');
+    //               }
+    //         }).then( resultJson => {
+    //             console.log(resultJson)
+    //             const {status, data} = resultJson
+    //             if(status.trimEnd() === 'ok') {
+    //                 return data
+    //             } else {
+    //                 res.status(500).json({ message: `Error. Status ${status}` })
+    //                 return
+    //             }
+    //         }).then( data => {
+    //             const {status, output} = data
+    //             if(status.trimEnd() === "error") {
+    //                 res.status(200).json({ result: `Error: syntax error.`, status: "error" })
+    //                 return
+    //             } 
+    //             if(status.trimEnd() === 'success' && output === '') {
+    //                 throw new Error('Submission failed. Please make review and make change to your code.');
+    //             }
+                
+    //             const outputJson = JSON.parse(output)
+    //             // output: '{"results": [{"result": "passed", "test": "Test 1"}, {"result": "passed", "test": "Test 2"}, ], "status": "passed"}\n',
+    //             const response = {result: outputJson.results, status: outputJson.status}
+    //             res.status(200).json(response)
+    //             return 
+
+    //         }).catch(error => {
+    //             // status code 202
+    //             console.log(error.message)
+    //              if (error.message === 'Unknown status code.') {
+    //                 if(attempts++ <= timeout)
+    //                     setTimeout(fetchResult, 1000);
+    //                 else 
+    //                     res.status(500).json({ message: 'System Error...Try again later.' });
+    //             } else if (statusCode === 500) {
+    //                 res.status(500).json({ message: 'System Error...Try again later.' });
+    //             } else {
+    //                 res.status(406).json({ message: error.message });
+    //             }
+    //         })
+    //     }
+        
+    //     status === 'ok' ?
+    //         fetchResult() : res.status(500).json({ message: `Error. Status ${status}` });       
+
+    // } catch (error) {
+    //     console.log(error)
+    //     res.status(400).json({message: error.message})
+    // }
+
+}
+
+// MARK: ----------------------- HELPER FUNCTIONS -----------------------
+
+const codeRunner = async (_id, code) => {
+
     try {
-        const _id = req.user._id._id
+    
         const user = await User.findOne({_id})
-        const challengeLevel = user.level
-        const questionLevel = user.question
-
-
-        const tester = await Tester.findOne({level: challengeLevel, question: questionLevel, year: currentYear})
-        const submissionCode = req.body.code + tester.code
-        // const submissionCode = req.body.code
+        const tester = await Tester.findOne({level: user.level, question: user.question, year: currentYear})
+        const submissionCode = code + tester.code
 
         const requestOptions = {
             method: 'POST',
@@ -283,75 +383,67 @@ exports.verifyChallenge = async (req, res) => {
                 timeout:5
             }	)
           }
-          
-        //MARK: ---------- Code Engine API Call ----------
-        // TODO: CHANGE IT BACK TO SERVICE IN PROD
-        // const response = await fetch("http://code-engine-server:5001/submit", requestOptions)
+   
         const response = await fetch("http://localhost:5001/submit", requestOptions) // REVIEW: USED FOR DEV
         const json = await response.json()
         const {status, data} = json
    
         let statusCode = 0
         let attempts = 0
-        const fetchResult = () => {
 
-            fetch(data).then(result => {
+        if (status === 'ok') {
+
+            while (statusCode !== 200) {
+                const result = await fetch(data)
                 statusCode = result.status
-                // console.log(statusCode)
-                if (statusCode === 200) {
-                    return result.json();
-                  } else if (statusCode === 500) {
+    
+                if(statusCode === 202 && attempts++ <= timeout) {
+                    await new Promise((resolve) => setTimeout(resolve, 1000)) 
+                    
+                } else if (statusCode === 200) {
+    
+                    const resultJson = await result.json()
+                    const {status, data} = resultJson
+    
+                    if(status.trimEnd() !== 'ok') {
+                        statusCode = 500
+                        throw new Error(`Error. Status ${status}`);
+                    }
+    
+                    if(data.status.trimEnd() === "error") {
+                        statusCode = 201
+                        throw new Error(`Error: syntax error.`);
+                    } 
+                    if(data.status.trimEnd() === 'success' && data.output === '') {
+                        statusCode = 201
+                        throw new Error('Submission failed. Please make review and make change to your code.');
+                    }
+                    
+                    const outputJson = JSON.parse(data.output)
+                    console.log('status 200')
+                    return{
+                        status: 200,
+                        json: {result: outputJson.results, status: outputJson.status}
+                    }
+    
+                } else {
                     throw new Error('System Error.');
-                  } else {
-                    throw new Error('Unknown status code.');
-                  }
-            }).then( resultJson => {
-                console.log(resultJson)
-                const {status, data} = resultJson
-                if(status.trimEnd() === 'ok') {
-                    return data
-                } else {
-                    res.status(500).json({ message: `Error. Status ${status}` })
-                    return
                 }
-            }).then( data => {
-                const {status, output} = data
-                if(status.trimEnd() === "error") {
-                    res.status(200).json({ result: `Error: syntax error.`, status: "error" })
-                    return
-                } 
-                if(status.trimEnd() === 'success' && output === '') {
-                    throw new Error('Submission failed. Please make review and make change to your code.');
-                }
-                
-                const outputJson = JSON.parse(output)
-                // output: '{"results": [{"result": "passed", "test": "Test 1"}, {"result": "passed", "test": "Test 2"}, ], "status": "passed"}\n',
-                const response = {result: outputJson.results, status: outputJson.status}
-                res.status(200).json(response)
-                return 
-
-            }).catch(error => {
-                // status code 202
-                console.log(error.message)
-                 if (error.message === 'Unknown status code.') {
-                    if(attempts++ <= 10)
-                        setTimeout(fetchResult, 1000);
-                    else 
-                        res.status(500).json({ message: 'System Error...Try again later.' });
-                } else if (statusCode === 500) {
-                    res.status(500).json({ message: 'System Error...Try again later.' });
-                } else {
-                    res.status(406).json({ message: error.message });
-                }
-            })
+            }
+  
+        } else {
+            return {
+                status: 500,
+                json: { message: `Error. Status ${status}` }
+            }
         }
-        
-        status === 'ok' ?
-            fetchResult() : res.status(500).json({ message: `Error. Status ${status}` });       
 
     } catch (error) {
         console.log(error)
-        res.status(400).json({message: error.message})
+        return {
+            status: 400,
+            json: { message: error.message }
+        }
     }
-
 }
+

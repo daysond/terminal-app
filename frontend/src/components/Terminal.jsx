@@ -292,7 +292,7 @@ export default function Terminal({
       } else if (json.status === 'failed') {
         setOutputs((prevState) => [
           ...prevState,
-          <TestCaseResult result={json.result} key={nanoid()} />,
+          <TestCaseResult key={nanoid()} result={json.result} />,
         ])
       } else {
         setOutputs((prevState) => [
@@ -316,7 +316,6 @@ export default function Terminal({
 
 
   //MARK: -------------------------------- TERMINAL RESPONSE --------------------------------------
-
   const handleYesNoSelection = (arg) => {
     const action = previousCmds[0].trimStart()
     .split(" ")

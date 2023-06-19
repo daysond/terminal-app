@@ -130,10 +130,11 @@ export const AllTestPassed = () => {
 export const TestCaseResult = (results) => {
 
   const resultElement = Object.values(results)[0].map(r=> 
-    <p> 
+    <p key={r.test}> 
       <span className={ r.result === 'passed' ? "term-green" : "term-warning"}>
         {r.test}: {r.result}
-        </span></p>)
+        </span>
+    </p>)
 
   return (
     <div className="cmd-group">
