@@ -224,3 +224,11 @@ const fs = [{
     //         }
     //     ]
     // }
+
+    // {
+    //     "level": "1",
+    //     "year": "2023",
+    //     "challengeName": "solar-doomsday",
+    //     "question": "1",
+    //     "code": "\n\nimport unittest\nfrom unittest import mock\nimport json\n\n\nclass SolutionTestCase(unittest.TestCase):\n    def test_solution_positive_numbers(self):\n        expected = 15\n        with mock.patch('builtins.print'):\n            result = solution(5, 10)\n\n        self.assertEqual(result, expected)\n\n\n    def test_solution_negative_numbers(self):\n        expected = -15\n        with mock.patch('builtins.print'):\n            result = solution(-5, -10)\n        self.assertEqual(result, expected)\n\n    def test_solution_zero(self):\n        expected = 0\n        with mock.patch('builtins.print'):\n            result = solution(0, 0)\n        self.assertEqual(result, expected)\n\n        \nclass CustomTestResult(unittest.TestResult):\n    def __init__(self, *args, **kwargs):\n        super().__init__(*args, **kwargs)\n        self.test_results = {}\n        self.result = 'ok'\n\n    def addSuccess(self, test):\n        self.test_results[test] = \"passed\"\n\n    def addFailure(self, test, err):\n        self.test_results[test] = \"failed\"\n        self.result = 'failed'\n\n    def print_test_results(self):\n        \n        test_results = [\n            f\"Test{index+1}: {result}\"\n            for index, (_, result) in enumerate(self.test_results.items())\n        ]\n        output = {\n            'result': self.result,\n            'output': '\\n'.join(test_results)\n        }\n        json_output = json.dumps(output)\n        print(json_output)\n        # print(f\"json_output: {json_output}\")\n        # print('\\n'.join(test_results))\n\n\nif __name__ == '__main__':\n    suite = unittest.TestLoader().loadTestsFromTestCase(SolutionTestCase)\n    result = CustomTestResult()\n    suite.run(result)\n    result.print_test_results()\n    \n"
+    //   }

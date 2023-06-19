@@ -2,6 +2,7 @@
 const {ChallengeModel} = require('../models/challengeModel')
 const User = require('../models/userModel')
 const {solutionSchema, SolutionModel, ChallengeToSolution} = require('../models/solutionModel')
+const Tester = require('../models/testerModel')
 
 // Get all challenges
 const currentYear = new Date().getFullYear();
@@ -140,7 +141,11 @@ exports.submitChallenge = async (req, res) => {
     try {
         const _id = req.user._id._id
         const user = await User.findOne({_id})
-        const challengeLevel = req.body.level
+        const challengeLevel = user.level
+        const questionLevel = user.question
+
+        const testerCode = await Tester.findOne({level: challengeLevel, question: questionLevel, year: currentYear})
+        console.log(testerCode.code)
         const submissionCode = req.body.code
 
         // console.log(submissionCode)

@@ -1,4 +1,4 @@
-const {challengeSchema, ChallengeModel} = require('./challengeModel')
+
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
