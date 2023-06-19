@@ -1,10 +1,17 @@
 import * as amqp from 'amqp-connection-manager';
 import { createFiles } from '../app.js'
+import { execSync } from "child_process";
 
 const QUEUE_NAME = 'judge'
 const connection = amqp.connect(['amqp://rabbitmq:5672']);
 
 connection.on('connect', function () {
+    // Install pip
+    execSync('curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py');
+    execSync('python3 get-pip.py');
+
+    // Install pipreqs
+    execSync('pip install pipreqs');
     console.log('Connected!');
 });
 

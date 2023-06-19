@@ -2,13 +2,15 @@ import fs from "fs";
 import { client } from "./config/redis.js";
 import { deleteFolder, execute } from "./utils.js"
 import "./config/rabbitmq.js";
+import { execSync } from "child_process";
 
 const extensions = {
     cpp: "cpp",
     c: "c",
     java: "java",
-    python3: "txt",
+    python3: "py",
 };
+
 
 const runCode = async (apiBody, ch, msg) => {
     try {
@@ -41,6 +43,10 @@ export const createFiles = async (apiBody, ch, msg) => {
         await fs.promises.mkdir(`/temp/${apiBody.folder}`);
         await fs.promises.writeFile(`/temp/${apiBody.folder}/input.txt`, apiBody.input);
         await fs.promises.writeFile(`/temp/${apiBody.folder}/source.${extensions[apiBody.lang]}`, apiBody.src);
+        // install requirements
+        execSync(`pipreqs /temp/${apiBody.folder}`)
+        execSync(`pip install -r /temp/${apiBody.folder}/requirements.txt`)
+
         runCode(apiBody, ch, msg);
     } catch (error) {
         console.log(error)

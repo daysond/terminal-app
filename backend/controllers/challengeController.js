@@ -105,10 +105,6 @@ exports.requestNewChallenge = async (req, res) => {
 
 }
 
-// module.exports = {
-//     getFileSystem
-// }
-
 exports.saveChallenge = async (req, res) => {
 
     try {
@@ -153,8 +149,8 @@ exports.submitChallenge = async (req, res) => {
 
 
         const tester = await Tester.findOne({level: challengeLevel, question: questionLevel, year: currentYear})
-        // const submissionCode = req.body.code + tester.code
-        const submissionCode = req.body.code
+        const submissionCode = req.body.code + tester.code
+        // const submissionCode = req.body.code
 
         const requestOptions = {
             method: 'POST',
@@ -260,13 +256,9 @@ exports.submitChallenge = async (req, res) => {
 
 }
 
-
 exports.verifyChallenge = async (req, res) => {
 
   
-    console.log("challenge VERIFY")
-    // TODO: FRONT END: auto save file before submitting?
-
     try {
         const _id = req.user._id._id
         const user = await User.findOne({_id})
@@ -275,8 +267,8 @@ exports.verifyChallenge = async (req, res) => {
 
 
         const tester = await Tester.findOne({level: challengeLevel, question: questionLevel, year: currentYear})
-        // const submissionCode = req.body.code + tester.code
-        const submissionCode = req.body.code
+        const submissionCode = req.body.code + tester.code
+        // const submissionCode = req.body.code
 
         const requestOptions = {
             method: 'POST',
@@ -300,7 +292,7 @@ exports.verifyChallenge = async (req, res) => {
         const {status, data} = json
    
         let statusCode = 0
-
+        let attempts = 0
         const fetchResult = () => {
 
             fetch(data).then(result => {
@@ -342,7 +334,10 @@ exports.verifyChallenge = async (req, res) => {
                 // status code 202
                 console.log(error.message)
                  if (error.message === 'Unknown status code.') {
-                    setTimeout(fetchResult, 1000);
+                    if(attempts++ <= 10)
+                        setTimeout(fetchResult, 1000);
+                    else 
+                        res.status(500).json({ message: 'System Error...Try again later.' });
                 } else if (statusCode === 500) {
                     res.status(500).json({ message: 'System Error...Try again later.' });
                 } else {
