@@ -246,13 +246,20 @@ export default function Terminal({
       // console.log(json);
       // file.editable = false;
       if (json.status === "passed") {
-        setOutputs((prevState) => [
-          ...prevState,
-          <AllTestPassed key={nanoid()} />,
-        ]);
+        // setOutputs((prevState) => [
+        //   ...prevState,
+        //   <AllTestPassed key={nanoid()} />,
+        // ]);
+
         setDirectory(createFS(json.user.challenge, null));
         setDeadline(json.deadline);
+        setTerminalMode(terminalModes.normal);
         updateLocalUser(json.user);
+        setOutputs((prevState) => [
+          ...prevState,
+          <Progress key={nanoid()} user={json.user} />,
+        ]);
+        return;
       } else {
         setOutputs((prevState) => [
           ...prevState,
