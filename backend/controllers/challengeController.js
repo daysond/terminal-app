@@ -43,18 +43,6 @@ exports.requestNewChallenge = async (req, res) => {
         if(userEligible) {
             // new level
             console.log("user eligible")
-            // let newChallenge = null
-            // if(newQuestionLevel > user.totalLevelQuestions || user.totalLevelQuestions === 0) {
-            //     const newChallenges = await ChallengeModel.find({level: newLevel, year: currentYear}, {_id:0}).lean()
-            //     user.totalLevelQuestions = newChallenges.length
-            //     newChallenge = newChallenges.filter(e=>e.question===1)[0]
-            //     user.level = newLevel
-            //     user.question = 1
-
-            // } else {
-            //     newChallenge = await ChallengeModel.findOne({level: userLevel, question: newQuestionLevel, year: currentYear}, {_id:0}).lean()
-            //     user.question = newQuestionLevel
-            // }
 
             const newChallenge = await ChallengeModel.findOne({level: userLevel, question: questionLevel, year: currentYear}, {_id:0}).lean()
 
@@ -72,7 +60,12 @@ exports.requestNewChallenge = async (req, res) => {
             
             //TODO: REMOVE DEBUG CODE
             await user.save()
-            res.status(200).json({challenge: user.challenge, intro: newChallenge.intro, name: newChallenge.name, timeLimit: newChallenge.timeLimit, deadline: deadline })
+            const resUser = [...user]
+            delete resUser.password
+            delete resUser._id
+
+            const response = {user: resUser, intro: newChallenge.intro, name: newChallenge.name, timeLimit: newChallenge.timeLimit }
+            res.status(200).json()
 
         } else {
 

@@ -183,11 +183,15 @@ export default function Terminal({
       // setFilesystemJSON(json)
       setTerminalMode(terminalModes.normal);
       console.log(json.intro);
-      setDirectory(createFS(json.challenge, null));
-      setDeadline(json.deadline);
+      setDirectory(createFS(json.user.challenge, null));
+      setDeadline(json.user.deadline);
 
       const user = JSON.parse(localStorage.getItem("user"));
-      user.deadline = json.deadline;
+      user.deadline = json.user.deadline;
+      user.status = json.user.status
+      user.level = json.user.level
+      user.question = json.user.question
+      user.totalLevelQuestions = json.user.totalLevelQuestions
       localStorage.setItem("user", JSON.stringify(user));
 
       setOutputs((prevState) => [

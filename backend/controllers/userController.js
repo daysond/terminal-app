@@ -24,6 +24,7 @@ const loginUser = async (req, res) => {
         }
 
         delete response.password
+        delete response._id
 
         res.status(200).json(response)
 
@@ -52,7 +53,8 @@ const signupUser = async (req, res) => {
         }
 
         delete response.password
-
+        delete response._id
+        
         res.status(200).json(response)
 
 
