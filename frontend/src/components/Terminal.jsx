@@ -1,5 +1,13 @@
 import { nanoid } from "nanoid";
-import { AllTestPassed, RequestWarning, SubmissionWarning, TestCaseResult, help, start, verifyCode } from "../command";
+import {
+  AllTestPassed,
+  RequestWarning,
+  SubmissionWarning,
+  TestCaseResult,
+  help,
+  start,
+  verifyCode,
+} from "../command";
 import {
   InvalidOutput,
   EchoCmd,
@@ -8,13 +16,15 @@ import {
   CatOutput,
   Message,
 } from "./Output";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useContext } from "react";
 import { useLogout } from "../hooks/useLogout";
 import "../App.css";
 import { createFS } from "../util/filesystem";
 import HTMLRenderer from "./HtmlRenderer";
 import { HighlightedText, NewChallengeInfo } from "../command";
 import { Progress } from "./Progress";
+// import {useAuthContext} from "../hooks/useAuthContext";
+import { AuthContext } from "../context/AuthContext";
 
 export default function Terminal({
   openEditor,
@@ -37,7 +47,7 @@ export default function Terminal({
   const [cursorIdx, setCursorIdx] = useState(0);
   const username = user.email.split("@")[0];
   const [cmdPrompt, setCmdPrompt] = useState("");
-
+  const { dispatch } = useContext(AuthContext);
   const [caretPosition, setCaretPosition] = useState(null);
 
   const terminalModes = {
@@ -182,17 +192,11 @@ export default function Terminal({
     if (response.ok) {
       // setFilesystemJSON(json)
       setTerminalMode(terminalModes.normal);
-      console.log(json.intro);
+      console.log(json);
       setDirectory(createFS(json.user.challenge, null));
       setDeadline(json.user.deadline);
 
-      const user = JSON.parse(localStorage.getItem("user"));
-      user.deadline = json.user.deadline;
-      user.status = json.user.status
-      user.level = json.user.level
-      user.question = json.user.question
-      user.totalLevelQuestions = json.user.totalLevelQuestions
-      localStorage.setItem("user", JSON.stringify(user));
+      updateLocalUser(json.user);
 
       setOutputs((prevState) => [
         ...prevState,
@@ -220,7 +224,6 @@ export default function Terminal({
   };
 
   const submitChallenge = async (file) => {
-
     const code = file.content;
 
     const requestOptions = {
@@ -247,8 +250,9 @@ export default function Terminal({
           ...prevState,
           <AllTestPassed key={nanoid()} />,
         ]);
-        setDirectory(createFS(json.challenge, null));
+        setDirectory(createFS(json.user.challenge, null));
         setDeadline(json.deadline);
+        updateLocalUser(json.user);
       } else {
         setOutputs((prevState) => [
           ...prevState,
@@ -259,7 +263,10 @@ export default function Terminal({
       //TODO: SET JSON
       setOutputs((prevState) => [
         ...prevState,
-        <HTMLRenderer key={nanoid()} htmlString = { `<p class='term-warning'>${json.message}</p> `} />,
+        <HTMLRenderer
+          key={nanoid()}
+          htmlString={`<p class='term-warning'>${json.message}</p> `}
+        />,
       ]);
       console.log(json);
     }
@@ -268,7 +275,6 @@ export default function Terminal({
   };
 
   const verifyChallenge = async (file) => {
-
     const code = file.content;
 
     const requestOptions = {
@@ -288,30 +294,33 @@ export default function Terminal({
     const json = await response.json();
     console.log(json);
     if (response.ok) {
- 
       if (json.status === "passed") {
         setOutputs((prevState) => [
           ...prevState,
           <AllTestPassed key={nanoid()} />,
-        ])
-      } else if (json.status === 'failed') {
+        ]);
+      } else if (json.status === "failed") {
         setOutputs((prevState) => [
           ...prevState,
           <TestCaseResult key={nanoid()} result={json.result} />,
-        ])
+        ]);
       } else {
         setOutputs((prevState) => [
           ...prevState,
-          <HTMLRenderer key={nanoid()} htmlString = { `<p class='term-warning'> ${json.result} </p>`} />,
+          <HTMLRenderer
+            key={nanoid()}
+            htmlString={`<p class='term-warning'> ${json.result} </p>`}
+          />,
         ]);
       }
- 
-  
     } else {
       //TODO: SET JSON
       setOutputs((prevState) => [
         ...prevState,
-        <HTMLRenderer key={nanoid()} htmlString = { `<p class='term-warning'>${json.message}</p> `} />,
+        <HTMLRenderer
+          key={nanoid()}
+          htmlString={`<p class='term-warning'>${json.message}</p> `}
+        />,
       ]);
       console.log(json);
     }
@@ -319,13 +328,13 @@ export default function Terminal({
     focusTextArea();
   };
 
-
   //MARK: -------------------------------- TERMINAL RESPONSE --------------------------------------
   const handleYesNoSelection = (arg) => {
-    const action = previousCmds[0].trimStart()
-    .split(" ")
-    .filter((e) => e != "")[0];
-    console.log("handling action", action)
+    const action = previousCmds[0]
+      .trimStart()
+      .split(" ")
+      .filter((e) => e != "")[0];
+    console.log("handling action", action);
     switch (userCommand.toUpperCase()) {
       case "Y":
         let msg = "";
@@ -334,13 +343,17 @@ export default function Terminal({
           msg = "Requesting new challenge...";
         }
         if (action === "submit") {
-          submitChallenge(directory.children.filter(f=>f.name==="solution.py")[0]);
+          submitChallenge(
+            directory.children.filter((f) => f.name === "solution.py")[0]
+          );
           msg = "Submitting solution...";
         }
 
-        if(action === "verify") {
-          verifyChallenge(directory.children.filter(f=>f.name==="solution.py")[0]);
-          msg = "Verifying solution..."
+        if (action === "verify") {
+          verifyChallenge(
+            directory.children.filter((f) => f.name === "solution.py")[0]
+          );
+          msg = "Verifying solution...";
         }
 
         setTerminalMode(terminalModes.disable);
@@ -570,13 +583,13 @@ export default function Terminal({
         break;
 
       case "edit":
-        findFileWithTarget(cmd, arg, (arg)=> { 
+        findFileWithTarget(cmd, arg, (arg) => {
           setOutputs((prevState) => [
             ...prevState,
             <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt} cmd={userCommand} />,
           ]);
-          openEditor(arg); 
-        })
+          openEditor(arg);
+        });
 
         break;
 
@@ -592,23 +605,23 @@ export default function Terminal({
 
       // TODO: these commands not supported yet
       case "status":
-        printProgress()
+        printProgress();
         break;
 
       case "submit":
-        findFileWithTarget(cmd, arg, (file)=> { 
+        findFileWithTarget(cmd, arg, (file) => {
           setOutputs((prevState) => [
             ...prevState,
             <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt} cmd={userCommand} />,
             <SubmissionWarning key={nanoid()} />,
           ]);
           setTerminalMode(terminalModes.yesno);
-        })
-        
+        });
+
         break;
 
       case "verify":
-        findFileWithTarget(cmd, arg, (file)=> { 
+        findFileWithTarget(cmd, arg, (file) => {
           verifyChallenge(file);
           setTerminalMode(terminalModes.disable);
           setOutputs((prevState) => [
@@ -616,7 +629,7 @@ export default function Terminal({
             <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt} cmd={userCommand} />,
             <Message key={nanoid()} msg={"Verifying solution..."} />,
           ]);
-        })
+        });
         break;
       case "logout":
         logout();
@@ -641,14 +654,27 @@ export default function Terminal({
 
   // MARK:----------------------------------- HELPERS ----------------------------------------------
 
+  const updateLocalUser = (_user) => {
+    
+    const user = JSON.parse(localStorage.getItem("user"));
+    user.deadline = _user.deadline;
+    user.status = _user.status;
+    user.level = _user.level;
+    user.question = _user.question;
+    user.totalLevelQuestions = _user.totalLevelQuestions;
+    localStorage.setItem("user", JSON.stringify(user));
+
+    dispatch({type:"updated", payload: user})
+  };
+
   const printProgress = () => {
-    // TODO: AFTER submission, update local user object. 
+    // TODO: AFTER submission, update local user object.
     setOutputs((prevState) => [
       ...prevState,
       <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt} cmd={userCommand} />,
-      <Progress key={nanoid()} user={user} />
+      <Progress key={nanoid()} user={user} />,
     ]);
-  }
+  };
 
   const findFileWithTarget = (cmd, arg, target) => {
     if (!arg) {
@@ -667,11 +693,7 @@ export default function Terminal({
       if (!file) {
         setOutputs((prevState) => [
           ...prevState,
-          <EchoCmd
-            key={nanoid()}
-            cmdPrompt={cmdPrompt}
-            cmd={userCommand}
-          />,
+          <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt} cmd={userCommand} />,
           <InvalidOutputMsg
             key={nanoid()}
             cmd={cmd}
@@ -681,11 +703,7 @@ export default function Terminal({
       } else if (file.isFolder) {
         setOutputs((prevState) => [
           ...prevState,
-          <EchoCmd
-            key={nanoid()}
-            cmdPrompt={cmdPrompt}
-            cmd={userCommand}
-          />,
+          <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt} cmd={userCommand} />,
           <InvalidOutputMsg
             key={nanoid()}
             cmd={cmd}
@@ -695,11 +713,7 @@ export default function Terminal({
       } else if (!file.editable) {
         setOutputs((prevState) => [
           ...prevState,
-          <EchoCmd
-            key={nanoid()}
-            cmdPrompt={cmdPrompt}
-            cmd={userCommand}
-          />,
+          <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt} cmd={userCommand} />,
           <InvalidOutputMsg
             key={nanoid()}
             cmd={cmd}
@@ -707,10 +721,10 @@ export default function Terminal({
           />,
         ]);
       } else {
-        target(file)
+        target(file);
       }
     }
-  }
+  };
 
   const updateCommandPrompt = (currentDir) => {
     switch (terminalMode) {

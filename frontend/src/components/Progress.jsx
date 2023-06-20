@@ -1,7 +1,7 @@
 import { nanoid } from "nanoid";
 
 export const Progress = ({ user }) => {
-
+    console.log('progress: ', user)
     const {status, level, question, totalLevelQuestions} = user
 
     if (status === 'new') {
@@ -13,7 +13,8 @@ export const Progress = ({ user }) => {
           </div>
         )
     }
-
+    
+    
     if (status === 'passed' && question === 1) {
         return(
             <div className="cmd-group">
@@ -21,10 +22,11 @@ export const Progress = ({ user }) => {
                 <p>You are now on level {level} </p>
                 <p>Challenge left to complete level: {totalLevelQuestions} </p>
                 <br />
+                <ProgressBar level={level} questionLeft={totalLevelQuestions} totalLevelQuestions={totalLevelQuestions}/>
             </div>
         )
     }
-
+    
     const questionLeft = status === "passed" ? (totalLevelQuestions - question) : (totalLevelQuestions - question + 1)
 
     if (status === "started" || (status === "passed" && question > 1)) {
