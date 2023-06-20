@@ -183,7 +183,7 @@ export default function Terminal({
     };
 
     const response = await fetch(
-      "http://localhost:4000/api/challenge/request",
+      "http://159.203.11.15:4000/api/challenge/request",
       requestOptions
     );
 
@@ -236,7 +236,7 @@ export default function Terminal({
     };
     console.log("submiting", requestOptions.body);
     const response = await fetch(
-      "http://localhost:4000/api/challenge/submit",
+      "http://159.203.11.15:4000/api/challenge/submit",
       requestOptions
     );
 
@@ -287,7 +287,7 @@ export default function Terminal({
     };
 
     const response = await fetch(
-      "http://localhost:4000/api/challenge/verify",
+      "http://159.203.11.15:4000/api/challenge/verify",
       requestOptions
     );
 
@@ -655,7 +655,6 @@ export default function Terminal({
   // MARK:----------------------------------- HELPERS ----------------------------------------------
 
   const updateLocalUser = (_user) => {
-    
     const user = JSON.parse(localStorage.getItem("user"));
     user.deadline = _user.deadline;
     user.status = _user.status;
@@ -664,7 +663,7 @@ export default function Terminal({
     user.totalLevelQuestions = _user.totalLevelQuestions;
     localStorage.setItem("user", JSON.stringify(user));
 
-    dispatch({type:"updated", payload: user})
+    dispatch({ type: "updated", payload: user });
   };
 
   const printProgress = () => {
