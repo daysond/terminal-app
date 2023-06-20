@@ -4,9 +4,9 @@ import { useSignup } from '../hooks/useSignup';
 const SignUpPopup = ({ isOpen, onClose }) => {
   // Handle form submission
 
-  const [email, setEmail] = useState('daysond@myseneca.ca');
-  const [password, setPassword] = useState('123456Ab');
-  const [confirmPassword, setConfirmPassword] = useState('123456Ab');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   const {signup, isLoading, error} = useSignup()
 
