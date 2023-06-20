@@ -9,7 +9,8 @@ export const authReducer = (state, action) => {
         
         case 'logged_out':
             return {user: null}
-        
+        case 'updated':
+            return {user: action.payload}
         // case 'signed_up':
         //     return {user: null}
     

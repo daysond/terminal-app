@@ -59,13 +59,13 @@ exports.requestNewChallenge = async (req, res) => {
             user.challenge = challenge
             
             //TODO: REMOVE DEBUG CODE
+            const userCopy = {...user.toObject()}
+            delete userCopy.password
+            delete userCopy._id
+            const response = {user: userCopy, intro: newChallenge.intro, name: newChallenge.name, timeLimit: newChallenge.timeLimit }
+            
             await user.save()
-            const resUser = [...user]
-            delete resUser.password
-            delete resUser._id
-
-            const response = {user: resUser, intro: newChallenge.intro, name: newChallenge.name, timeLimit: newChallenge.timeLimit }
-            res.status(200).json()
+            res.status(200).json(response)
 
         } else {
 
@@ -103,7 +103,7 @@ exports.saveChallenge = async (req, res) => {
         const {level, content} = req.body
        
         const user = await User.findOne({_id})
-
+        console.log(user)
         const challenge = user.challenge
         const challengeFolder = challenge.children.find(child=> child.type === 'directory')
         const file = challengeFolder.children.find(child=> child.name === 'solution.py')
@@ -116,6 +116,7 @@ exports.saveChallenge = async (req, res) => {
 
         
     } catch (error) {
+        console.log(error)
         res.status(400).json({message: error})
     }
 
@@ -159,9 +160,13 @@ exports.submitChallenge = async (req, res) => {
         // user.totalLevelQuestions = 0
         // user.status = 'new'
         // end 
+        
+        const userCopy = {...user}
+        delete userCopy.password
+        delete userCopy._id
+        const response =   {result: result, user: user, deadline: null, status: status} 
+        
         await user.save()
-
-        const response =   {result: result, challenge: user.challenge, deadline: null, status: status} 
         res.status(200).json(response)
     }
 

@@ -73,7 +73,7 @@ export const Home = () => {
       console.log("calling fetch ", user);
       fetchFileSystem();
     }
-  }, [user]);
+  }, [user.token]);
 
   //MARK: Editor States
   const [editorMode, setEditorMode] = useState(false);
