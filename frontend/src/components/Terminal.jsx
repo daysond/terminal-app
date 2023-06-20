@@ -246,13 +246,20 @@ export default function Terminal({
       // console.log(json);
       // file.editable = false;
       if (json.status === "passed") {
-        setOutputs((prevState) => [
-          ...prevState,
-          <AllTestPassed key={nanoid()} />,
-        ]);
+        // setOutputs((prevState) => [
+        //   ...prevState,
+        //   <AllTestPassed key={nanoid()} />,
+        // ]);
+
         setDirectory(createFS(json.user.challenge, null));
         setDeadline(json.deadline);
+        setTerminalMode(terminalModes.normal);
         updateLocalUser(json.user);
+        setOutputs((prevState) => [
+          ...prevState,
+          <Progress key={nanoid()} user={json.user} />,
+        ]);
+        return;
       } else {
         setOutputs((prevState) => [
           ...prevState,
@@ -655,7 +662,6 @@ export default function Terminal({
   // MARK:----------------------------------- HELPERS ----------------------------------------------
 
   const updateLocalUser = (_user) => {
-    
     const user = JSON.parse(localStorage.getItem("user"));
     user.deadline = _user.deadline;
     user.status = _user.status;
@@ -664,7 +670,7 @@ export default function Terminal({
     user.totalLevelQuestions = _user.totalLevelQuestions;
     localStorage.setItem("user", JSON.stringify(user));
 
-    dispatch({type:"updated", payload: user})
+    dispatch({ type: "updated", payload: user });
   };
 
   const printProgress = () => {
