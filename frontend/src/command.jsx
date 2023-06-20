@@ -29,11 +29,9 @@ export const help = [
 export const start = (
   <div className="cmd-group">
     <p>
-      {" "}
       Type <span className="command">request</span> to request a challenge.
     </p>
     <p>
-      {" "}
       Type <span className="command">help</span> for a list of commands.
     </p>
   </div>
@@ -45,7 +43,6 @@ export const MountingPrompt = ({ username }) => {
   return (
     <div className="cmd-group">
       <p>
-        {" "}
         Mounting <span className="command">/home/{username}...</span>
       </p>
       <p>
@@ -69,12 +66,10 @@ export const NewChallengeInfo = ({ name, timeLimit }) => {
   return (
     <div className="cmd-group">
       <p>
-        {" "}
         New challenge <span className="command">"{name}"</span> added to your
         home folder.
       </p>
       <p>
-        {" "}
         Time to solve: <span className="command">{` ${timeLimit} `}</span>{" "}
         hours.
       </p>
@@ -86,7 +81,6 @@ export const RequestWarning = () => {
   return (
     <div className="cmd-group">
       <p>
-        {" "}
         <span className="term-warning">
           You are about to begin a TIME-LIMITED challenge. You will have 7 days
           to complete each newly requested challenge or LOSE ACCESS to this
@@ -94,7 +88,6 @@ export const RequestWarning = () => {
         </span>
       </p>
       <p>
-        {" "}
         <span className="term-gold">
           Do you wish to proceed and start the timer on your first challenge?
         </span>

@@ -14,6 +14,7 @@ import "../App.css";
 import { createFS } from "../util/filesystem";
 import HTMLRenderer from "./HtmlRenderer";
 import { HighlightedText, NewChallengeInfo } from "../command";
+import { Progress } from "./Progress";
 
 export default function Terminal({
   openEditor,
@@ -247,7 +248,7 @@ export default function Terminal({
       } else {
         setOutputs((prevState) => [
           ...prevState,
-          <HTMLRenderer key={nanoid()} htmlString = { `<p class='term-warning'> ${json.result} </p>`} />,
+          <TestCaseResult key={nanoid()} result={json.result} />,
         ]);
       }
     } else {
@@ -587,10 +588,7 @@ export default function Terminal({
 
       // TODO: these commands not supported yet
       case "status":
-        setOutputs((prevState) => [
-          ...prevState,
-          <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt} cmd={userCommand} />,
-        ]);
+        printProgress()
         break;
 
       case "submit":
@@ -638,6 +636,15 @@ export default function Terminal({
   };
 
   // MARK:----------------------------------- HELPERS ----------------------------------------------
+
+  const printProgress = () => {
+    // TODO: AFTER submission, update local user object. 
+    setOutputs((prevState) => [
+      ...prevState,
+      <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt} cmd={userCommand} />,
+      <Progress key={nanoid()} user={user} />
+    ]);
+  }
 
   const findFileWithTarget = (cmd, arg, target) => {
     if (!arg) {

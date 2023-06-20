@@ -22,17 +22,17 @@ const userSchema = new Schema({
     level: {
         type: Number,
         required: true,
-        default: 0
+        default: 1
     },
     question: {
         type: Number,
         required: true,
-        default: 0
+        default: 1
     },
     totalLevelQuestions: {
         type: Number,
         required: true,
-        default:0
+        default:1
     },
     status: {
         type: String,
@@ -86,7 +86,7 @@ userSchema.statics.signup = async function(email, password) {
     const challengeRoot = await ChallengeModel.findOne({name:"root", year: currentYear}, {_id:0}).lean()
     challengeRoot.name = email.split("@")[0]
     const solutionRoot = ChallengeToSolution(challengeRoot)
-    const user = await this.create({email, password: hash, level: 0, question:0, deadline: null, challenge: solutionRoot})
+    const user = await this.create({email, password: hash, deadline: null, challenge: solutionRoot})
 
     return user
 

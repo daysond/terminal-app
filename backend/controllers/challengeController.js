@@ -37,29 +37,26 @@ exports.requestNewChallenge = async (req, res) => {
         const newQuestionLevel = questionLevel + 1
         console.log(user)
         // checks user level, 0? no futher checking
-        let userEligible = userLevel === 0 && questionLevel === 0
+        const userEligible = user.status === 'new' || user.status === 'passed'
 
-        // non 0, validate solutions
-        if (userLevel > 0){
-            userEligible = user.status === 'passed'
-        }
-       
         // can request new solution? append solution to user list and save solution also new user level
         if(userEligible) {
             // new level
             console.log("user eligible")
-            let newChallenge = null
-            if(newQuestionLevel > user.totalLevelQuestions || user.totalLevelQuestions === 0) {
-                const newChallenges = await ChallengeModel.find({level: newLevel, year: currentYear}, {_id:0}).lean()
-                user.totalLevelQuestions = newChallenges.length
-                newChallenge = newChallenges.filter(e=>e.question===1)[0]
-                user.level = newLevel
-                user.question = 1
+            // let newChallenge = null
+            // if(newQuestionLevel > user.totalLevelQuestions || user.totalLevelQuestions === 0) {
+            //     const newChallenges = await ChallengeModel.find({level: newLevel, year: currentYear}, {_id:0}).lean()
+            //     user.totalLevelQuestions = newChallenges.length
+            //     newChallenge = newChallenges.filter(e=>e.question===1)[0]
+            //     user.level = newLevel
+            //     user.question = 1
 
-            } else {
-                newChallenge = await ChallengeModel.findOne({level: userLevel, question: newQuestionLevel, year: currentYear}, {_id:0}).lean()
-                user.question = newQuestionLevel
-            }
+            // } else {
+            //     newChallenge = await ChallengeModel.findOne({level: userLevel, question: newQuestionLevel, year: currentYear}, {_id:0}).lean()
+            //     user.question = newQuestionLevel
+            // }
+
+            const newChallenge = await ChallengeModel.findOne({level: userLevel, question: questionLevel, year: currentYear}, {_id:0}).lean()
 
             newChallenge.parent = user.email.split("@")[0]
             const now = new Date();
@@ -133,126 +130,46 @@ exports.saveChallenge = async (req, res) => {
 
 exports.submitChallenge = async (req, res) => {
 
+
     //TODO: 1. reuse VERIFY code
-    // 2. get result
-    // 3. validate result? pass? failed?
-    // 4. send res & update 
-    // 5. remove solution from user challenge but store it somewhere else .
+    const _id = req.user._id._id
+    const response =  await codeRunner(_id, req.body.code)
+    const status = response.json.status
+    const result = response.json.result
+    console.log(status)
+    // res.status(response.status).json(response.json)
 
-    console.log("challenge submit")
-    // TODO: FRONT END: auto save file before submitting?
+    if(status === 'failed') {
+        const response =   {result: result, status: status} 
+        res.status(200).json(response)
+    }
 
-    try {
-        const _id = req.user._id._id
-        const user = await User.findOne({_id})
-        const challengeLevel = user.level
-        const questionLevel = user.question
-
-
-        const tester = await Tester.findOne({level: challengeLevel, question: questionLevel, year: currentYear})
-        const submissionCode = req.body.code + tester.code
-        // const submissionCode = req.body.code
-
-        const requestOptions = {
-            method: 'POST',
-            headers: { 
-              'Content-Type': 'application/json',
-              'authorization': `Bearer ${user?.token}` 
-            },
-            body: JSON.stringify({
-                src: submissionCode,
-                stdin:"",
-                lang:"python3",
-                timeout:5
-            }	)
-          }
-          
-        //MARK: ---------- Code Engine API Call ----------
-        // TODO: CHANGE IT BACK TO SERVICE IN PROD
-        // const response = await fetch("http://code-engine-server:5001/submit", requestOptions)
-        const response = await fetch("http://localhost:5001/submit", requestOptions) // REVIEW: USED FOR DEV
-        const json = await response.json()
-        const {status, data} = json
-        // console.log("got res, json", status, data)
-        // {
-        //     status: 'ok',
-        //     data: 'http://localhost:5001/results/5b17bb811ce012aa6c49'
-        //   }
-        let statusCode = 0
-          // Getting Code Running result
-        const fetchResult = async () => {
-
-            fetch(data).then(result => {
-                statusCode = result.status
-                // console.log(statusCode)
-                if (statusCode === 200) {
-                    return result.json();
-                  } else if (statusCode === 500) {
-                    throw new Error('System Error.');
-                  } else {
-                    throw new Error('Unknown status code.');
-                  }
-            }).then( resultJson => {
-                console.log(resultJson)
-                const {status, data} = resultJson
-                if(status.trimEnd() === 'ok') {
-                    return data
-                } else {
-                    res.status(500).json({ message: `Error. Status ${status}` })
-                    return
-                }
-
-                // res.status(200).json({result: "123"})
-            }).then(async data => {
-                const {status, output} = data
-                if(status.trimEnd() === "error") {
-                    res.status(200).json({ result: `Error: syntax error.`, status: "error" })
-                    return
-                } 
-                if(status.trimEnd() === 'success' && output === '') {
-                    throw new Error('Submission failed. Please make review and make change to your code.');
-                }
-                
-                const outputJson = JSON.parse(output)
-                // output: '{"results": [{"result": "passed", "test": "Test 1"}, {"result": "passed", "test": "Test 2"}, ], "status": "passed"}\n',
-                if(outputJson.result === 'passed'){
-                    user.status = outputJson.status
-                    //TODO: REMOVE THIS
-                    // user.challenge.children = user.challenge.children.filter(e => e.type === 'file')
-                    user.deadline = null
-                    //TODO:  -------- DEBUG CODE ------------- 
-                    user.level = 0
-                    user.question = 0
-                    user.totalLevelQuestions = 0
-                    user.status = 'new'
-                    // end 
-                    await user.save()
-                }
-                const response =  outputJson.status === 'passed' ? 
-                     {result: outputJson.results, challenge: user.challenge, deadline: null, status: outputJson.status} 
-                     : {result: outputJson.results, status: outputJson.status}
-
-                res.status(200).json(response)
-
-            }).catch(error => {
-                // status code 202
-                console.log(error.message)
-                 if (error.message === 'Unknown status code.') {
-                    setTimeout(fetchResult, 1000);
-                } else if (statusCode === 500) {
-                    res.status(500).json({ message: 'System Error...Try again later.' });
-                } else {
-                    res.status(406).json({ message: error.message });
-                }
-            })
-        }
+    if(status === 'passed') {
         
-        status === 'ok' ?
-            fetchResult() : res.status(500).json({ message: `Error. Status ${status}` });       
+        const user = await User.findOne({_id})
+        //TODO: REMOVE comment
+        if(user.question === user.totalLevelQuestions) {
+            const newChallenges = await ChallengeModel.find({level: user.level + 1, year: currentYear}, {_id:0}).lean()
+            user.totalLevelQuestions = newChallenges.length
+            user.level+=1
+            user.question = 1
+        } else {
+            user.question + 1
+        }
+        user.status = status
+        user.challenge.children = user.challenge.children.filter(e => e.type === 'file')
+        user.deadline = null
 
-    } catch (error) {
-        console.log(error)
-        res.status(400).json({message: error.message})
+        //TODO:  -------- DEBUG CODE ------------- 
+        // user.level = 0
+        // user.question = 0
+        // user.totalLevelQuestions = 0
+        // user.status = 'new'
+        // end 
+        await user.save()
+
+        const response =   {result: result, challenge: user.challenge, deadline: null, status: status} 
+        res.status(200).json(response)
     }
 
 }
@@ -262,101 +179,6 @@ exports.verifyChallenge = async (req, res) => {
    const {status, json} =  await codeRunner(req.user._id._id, req.body.code)
     res.status(status).json(json)
 
-
-    // try {
-    //     const _id = req.user._id._id
-    //     const user = await User.findOne({_id})
-    //     const challengeLevel = user.level
-    //     const questionLevel = user.question
-
-
-    //     const tester = await Tester.findOne({level: challengeLevel, question: questionLevel, year: currentYear})
-    //     const submissionCode = req.body.code + tester.code
-    //     // const submissionCode = req.body.code
-
-    //     const requestOptions = {
-    //         method: 'POST',
-    //         headers: { 
-    //           'Content-Type': 'application/json',
-    //           'authorization': `Bearer ${user?.token}` 
-    //         },
-    //         body: JSON.stringify({
-    //             src: submissionCode,
-    //             stdin:"",
-    //             lang:"python3",
-    //             timeout:5
-    //         }	)
-    //       }
-          
-    //     //MARK: ---------- Code Engine API Call ----------
-    //     // TODO: CHANGE IT BACK TO SERVICE IN PROD
-    //     // const response = await fetch("http://code-engine-server:5001/submit", requestOptions)
-    //     const response = await fetch("http://localhost:5001/submit", requestOptions) // REVIEW: USED FOR DEV
-    //     const json = await response.json()
-    //     const {status, data} = json
-   
-    //     let statusCode = 0
-    //     let attempts = 0
-    //     const fetchResult = () => {
-
-    //         fetch(data).then(result => {
-    //             statusCode = result.status
-    //             // console.log(statusCode)
-    //             if (statusCode === 200) {
-    //                 return result.json();
-    //               } else if (statusCode === 500) {
-    //                 throw new Error('System Error.');
-    //               } else {
-    //                 throw new Error('Unknown status code.');
-    //               }
-    //         }).then( resultJson => {
-    //             console.log(resultJson)
-    //             const {status, data} = resultJson
-    //             if(status.trimEnd() === 'ok') {
-    //                 return data
-    //             } else {
-    //                 res.status(500).json({ message: `Error. Status ${status}` })
-    //                 return
-    //             }
-    //         }).then( data => {
-    //             const {status, output} = data
-    //             if(status.trimEnd() === "error") {
-    //                 res.status(200).json({ result: `Error: syntax error.`, status: "error" })
-    //                 return
-    //             } 
-    //             if(status.trimEnd() === 'success' && output === '') {
-    //                 throw new Error('Submission failed. Please make review and make change to your code.');
-    //             }
-                
-    //             const outputJson = JSON.parse(output)
-    //             // output: '{"results": [{"result": "passed", "test": "Test 1"}, {"result": "passed", "test": "Test 2"}, ], "status": "passed"}\n',
-    //             const response = {result: outputJson.results, status: outputJson.status}
-    //             res.status(200).json(response)
-    //             return 
-
-    //         }).catch(error => {
-    //             // status code 202
-    //             console.log(error.message)
-    //              if (error.message === 'Unknown status code.') {
-    //                 if(attempts++ <= timeout)
-    //                     setTimeout(fetchResult, 1000);
-    //                 else 
-    //                     res.status(500).json({ message: 'System Error...Try again later.' });
-    //             } else if (statusCode === 500) {
-    //                 res.status(500).json({ message: 'System Error...Try again later.' });
-    //             } else {
-    //                 res.status(406).json({ message: error.message });
-    //             }
-    //         })
-    //     }
-        
-    //     status === 'ok' ?
-    //         fetchResult() : res.status(500).json({ message: `Error. Status ${status}` });       
-
-    // } catch (error) {
-    //     console.log(error)
-    //     res.status(400).json({message: error.message})
-    // }
 
 }
 
@@ -404,6 +226,7 @@ const codeRunner = async (_id, code) => {
     
                     const resultJson = await result.json()
                     const {status, data} = resultJson
+                    console.log(data)
     
                     if(status.trimEnd() !== 'ok') {
                         statusCode = 500
@@ -411,16 +234,14 @@ const codeRunner = async (_id, code) => {
                     }
     
                     if(data.status.trimEnd() === "error") {
-                        statusCode = 201
-                        throw new Error(`Error: syntax error.`);
+                        throw new Error(`Error: Invalid solution. Make sure there's no syntax error.`);
                     } 
                     if(data.status.trimEnd() === 'success' && data.output === '') {
-                        statusCode = 201
                         throw new Error('Submission failed. Please make review and make change to your code.');
                     }
                     
                     const outputJson = JSON.parse(data.output)
-                    console.log('status 200')
+    
                     return{
                         status: 200,
                         json: {result: outputJson.results, status: outputJson.status}

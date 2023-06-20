@@ -50,5 +50,14 @@ export const createFiles = async (apiBody, ch, msg) => {
         runCode(apiBody, ch, msg);
     } catch (error) {
         console.log(error)
+        let result = {
+            output: '',
+            status: 'error',
+            submission_id: apiBody.folder,
+        };
+
+        deleteFolder(`../temp/${apiBody.folder}`);
+        client.setex(apiBody.folder.toString(), 3600, JSON.stringify(result));
+        ch.ack(msg);
     }
 };
