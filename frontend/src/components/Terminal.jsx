@@ -2,7 +2,7 @@ import { nanoid } from "nanoid";
 import {
   AllTestPassed,
   RequestWarning,
-  SubmissionWarning,
+  WarningMessage,
   TestCaseResult,
   Help,
   start,
@@ -15,7 +15,14 @@ import {
   CatOutput,
   Message,
 } from "./Output";
-import { useEffect, useRef, useState, useContext, useCallback, useLayoutEffect } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  useContext,
+  useCallback,
+  useLayoutEffect,
+} from "react";
 import { useLogout } from "../hooks/useLogout";
 import "../App.css";
 import { createFS } from "../util/filesystem";
@@ -37,7 +44,7 @@ export default function Terminal({
   directory,
   setDirectory,
   setDeadline,
-  editorMode
+  editorMode,
 }) {
   const { logout } = useLogout();
 
@@ -62,7 +69,7 @@ export default function Terminal({
 
   useEffect(() => {
     scrollEndViewRef.current?.scrollIntoView({ behavior: "smooth" });
-    if(!editorMode) focusTextArea();
+    if (!editorMode) focusTextArea();
   }, [outputs, editorMode]);
 
   useEffect(() => {
@@ -75,9 +82,8 @@ export default function Terminal({
     setCursorIdx(caretPosition);
   }, [caretPosition]);
 
-
   // MARK: ---------------------- Handle user command ---------------------------------------------
-  const handleChange = (event) => {
+  const handleTextAreaChange = (event) => {
     setUserCommand(event.target.value.replace(/\r?\n|\r/g, ""));
     const { selectionStart } = event.target;
     setCaretPosition(selectionStart);
@@ -90,7 +96,7 @@ export default function Terminal({
 
     if (event.key === "Enter" && terminalMode === terminalModes.normal) {
       //TODO: FIRE COMMAND
-      if(userCommand !== '')
+      if (userCommand !== "")
         setPreviousCmds((prev) =>
           userCommand === previousCmds[0] ? prev : [userCommand, ...prev]
         );
@@ -192,7 +198,7 @@ export default function Terminal({
     };
 
     const response = await fetch(
-      "http://159.203.11.15:4000/api/challenge/request",
+      "http://localhost:4000/api/challenge/request",
       requestOptions
     );
 
@@ -244,7 +250,7 @@ export default function Terminal({
     };
     console.log("submiting", requestOptions.body);
     const response = await fetch(
-      "http://159.203.11.15:4000/api/challenge/submit",
+      "http://localhost:4000/api/challenge/submit",
       requestOptions
     );
 
@@ -270,9 +276,16 @@ export default function Terminal({
           />,
           <Progress key={nanoid()} user={json.user} />,
         ];
-        if (user.level === 1) {
+        if (user.level === 5) {
           submissionOutputElements.unshift(<CanvasComponent key={nanoid()} />);
         }
+
+        if (json.outro) {
+          submissionOutputElements.push(
+            <HighlightedText key={nanoid()} text={json.outro} />
+          );
+        }
+
         setOutputs((prevState) => [...prevState, ...submissionOutputElements]);
         return;
       } else {
@@ -309,7 +322,7 @@ export default function Terminal({
     };
 
     const response = await fetch(
-      "http://159.203.11.15:4000/api/challenge/verify",
+      "http://localhost:4000/api/challenge/verify",
       requestOptions
     );
 
@@ -420,7 +433,7 @@ export default function Terminal({
         setOutputs((prevState) => [
           ...prevState,
           <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt} cmd={cmd} />,
-          <Help key={nanoid()}/>,
+          <Help key={nanoid()} />,
         ]);
         break;
 
@@ -616,13 +629,7 @@ export default function Terminal({
         break;
 
       case "request":
-        setOutputs((prevState) => [
-          ...prevState,
-          <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt} cmd={userCommand} />,
-          <RequestWarning key={nanoid()} />,
-        ]);
-        setTerminalMode(terminalModes.yesno);
-        // requestNewChallenge();
+        handleRequestChallenge();
         break;
 
       // TODO: these commands not supported yet
@@ -635,7 +642,10 @@ export default function Terminal({
           setOutputs((prevState) => [
             ...prevState,
             <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt} cmd={userCommand} />,
-            <SubmissionWarning key={nanoid()} />,
+            <WarningMessage
+              msg={"Are you sure you want to submit your solution?"}
+              key={nanoid()}
+            />,
           ]);
           setTerminalMode(terminalModes.yesno);
         });
@@ -686,6 +696,51 @@ export default function Terminal({
     localStorage.setItem("user", JSON.stringify(user));
 
     dispatch({ type: "updated", payload: user });
+  };
+
+  const handleRequestChallenge = () => {
+    if (user.status === "started") {
+      setOutputs((prevState) => [
+        ...prevState,
+        <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt} cmd={userCommand} />,
+        <WarningMessage
+          msg={
+            "You are already on a challenge. Please submit your verified solution before requesting a new one."
+          }
+          key={nanoid()}
+        />,
+      ]);
+      return;
+    }
+
+    if (user.status === "timeout") {
+      setOutputs((prevState) => [
+        ...prevState,
+        <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt} cmd={userCommand} />,
+        <WarningMessage
+          msg={"Challenge timed out. You are not eligible for new challenges."}
+          key={nanoid()}
+        />,
+      ]);
+      return;
+    }
+
+    if (user.status === "completed") {
+      setOutputs((prevState) => [
+        ...prevState,
+        <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt} cmd={userCommand} />,
+        <Message msg={"You've finished all the challenges!"} key={nanoid()} />,
+      ]);
+      return;
+    }
+
+    setOutputs((prevState) => [
+      ...prevState,
+      <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt} cmd={userCommand} />,
+      <RequestWarning key={nanoid()} />,
+    ]);
+    setTerminalMode(terminalModes.yesno);
+    // requestNewChallenge();
   };
 
   const printProgress = () => {
@@ -818,12 +873,9 @@ export default function Terminal({
       </span>
     );
   }
- 
+
   return (
-    <main
-      className="console active terminal"
-      onClick={focusTextArea}
-    >
+    <main className="console active terminal" onClick={focusTextArea}>
       <div className="terminal-wrapper">
         <div className="terminal-output">{outputs}</div>
         <div className="cmd enabled">
@@ -855,7 +907,7 @@ export default function Terminal({
             className="cmd-clipboard"
             value={userCommand}
             onKeyDown={handleKeyDown}
-            onChange={handleChange}
+            onChange={handleTextAreaChange}
             ref={inputFieldReference}
             style={{
               left: "150px",
@@ -865,7 +917,7 @@ export default function Terminal({
             }}
             autoFocus
           />
-        <div ref={scrollEndViewRef}></div>
+          <div ref={scrollEndViewRef}></div>
         </div>
       </div>
     </main>

@@ -37,7 +37,7 @@ const userSchema = new Schema({
     status: {
         type: String,
         required: true,
-        enum: ['new', 'started' ,'passed', 'timeout', 'completed'],
+        enum: ['new', 'started' ,'passed', 'timeout', 'completed', 'submitted'],
         default: "new"
     },
     deadline: {

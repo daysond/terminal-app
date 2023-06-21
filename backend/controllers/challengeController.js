@@ -36,7 +36,7 @@ exports.requestNewChallenge = async (req, res) => {
       
         console.log(user)
         // checks user level, 0? no futher checking
-        const userEligible = user.status === 'new' || user.status === 'passed'
+        const userEligible = user.status === 'new' || user.status === 'passed' || user.status === 'submitted'
 
         // can request new solution? append solution to user list and save solution also new user level
         if(userEligible) {
@@ -44,7 +44,7 @@ exports.requestNewChallenge = async (req, res) => {
             console.log("user eligible")
 
             const newChallenge = await ChallengeModel.findOne({level: userLevel, question: questionLevel, year: currentYear}, {_id:0}).lean()
-
+            console.log('new challenge: ', newChallenge)
             newChallenge.parent = user.email.split("@")[0]
             const now = new Date();
             const deadline = new Date(now.getTime() + newChallenge.timeLimit * 60 * 60 * 1000);
@@ -139,22 +139,27 @@ exports.submitChallenge = async (req, res) => {
     if(status === 'passed') {
         
         const user = await User.findOne({_id})
+        let outro = null
         console.log(user)
+        
         //TODO: REMOVE comment
-        if(user.question === user.totalLevelQuestions) {
+        if(user.level === 5 && user.question === user.totalLevelQuestions) {
+            user.status = 'completed'
+        } else if(user.question === user.totalLevelQuestions) {
             // update user to new level
             const newChallenges = await ChallengeModel.find({level: user.level + 1, year: currentYear}, {_id:0}).lean()
             const currentChallenge = await ChallengeModel.findOne({level: user.level, question: user.question, year: currentYear}, {_id:0}).lean()
-        
-            user.challenge.children.filter(e=>e.name==='journal.txt')[0].content += `\n\n${currentChallenge.outro}`
+            outro = currentChallenge.outro
+            user.challenge.children.filter(e=>e.name==='journal.txt')[0].content += `\n\n${outro}`
             user.totalLevelQuestions = newChallenges.length
             user.level+=1
             user.question = 1
+            user.status = status
         } else {
             // update user to new question
-            user.question + 1
+            user.status = 'submitted'
+            user.question += 1
         }
-        user.status = status
         user.challenge.children = user.challenge.children.filter(e => e.type === 'file')
         user.deadline = null
 
@@ -168,7 +173,7 @@ exports.submitChallenge = async (req, res) => {
         const userCopy = {...user}
         delete userCopy.password
         delete userCopy._id
-        const response =   {result: result, user: user, deadline: null, status: status} 
+        const response =   {result: result, user: user, deadline: null, status: status, outro: outro} 
         
         await user.save()
         res.status(200).json(response)
@@ -208,7 +213,7 @@ const codeRunner = async (_id, code) => {
             }	)
           }
    
-        const response = await fetch("http://159.203.11.15:5001/submit", requestOptions) // REVIEW: USED FOR DEV
+        const response = await fetch("http://localhost:5001/submit", requestOptions) // REVIEW: USED FOR DEV
         const json = await response.json()
         const {status, data} = json
    

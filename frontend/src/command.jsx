@@ -100,12 +100,12 @@ export const RequestWarning = () => {
   );
 };
 
-export const SubmissionWarning = () => {
+export const WarningMessage = ({msg}) => {
   return (
     <div className="cmd-group">
       <p>
         <span className="term-warning">
-          Are you sure you want to submit your solution?
+          {msg}
         </span>
       </p>
     </div>
