@@ -62,7 +62,19 @@ const signupUser = async (req, res) => {
         res.status(400).json({error: error.message})
     }
 
-
 }
 
-module.exports = { signupUser, loginUser}
+const verifyToken = async (req, res) => {
+    
+    return req.user ? 
+    res.status(200).json({
+        status: 'Success',
+        message: 'User verified.'
+    }) :
+    res.status(401).json({
+        status: 'Unauthorized',
+        message: 'Token valid but user was not found.'
+    })
+}
+
+module.exports = { signupUser, loginUser, verifyToken}

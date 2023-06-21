@@ -19,6 +19,7 @@ import Countdown from "../components/Countdown";
 import InstagramIcon from "../components/InstagramIcon";
 import ConfirmPopup from "../components/ConfirmPopup";
 import "./auth.css";
+import CanvasComponent from "../components/Canvas";
 
 export const Home = () => {
   const [os, setOS] = useState("Unknown");
@@ -34,6 +35,7 @@ export const Home = () => {
     setOutputs([
       <WelcomeBanner key={nanoid()} />,
       <MountingPrompt key={nanoid()} username={username} />,
+      <CanvasComponent />
     ]);
     setOS(getOperatingSystem(window));
 
@@ -49,12 +51,13 @@ export const Home = () => {
       if (response.ok) {
         console.log("[DEBUG] Got challenges ", json);
         setDirectory(createFS(json, null));
+        const lines = json.children.filter((e) => e.name === "journal.txt")[0].content.split('\n').filter(e=>e !== '')
         setOutputs((prev) => [
           ...prev,
           <HighlightedText
             key={nanoid()}
             text={
-              json.children.filter((e) => e.name === "journal.txt")[0].content
+              lines[lines.length - 1]
             }
           />,
         ]);
@@ -168,6 +171,7 @@ export const Home = () => {
     user,
     setDeadline,
     deadline,
+    editorMode,
   };
 
   return (

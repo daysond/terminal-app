@@ -4,9 +4,8 @@ import {
   RequestWarning,
   SubmissionWarning,
   TestCaseResult,
-  help,
+  Help,
   start,
-  verifyCode,
 } from "../command";
 import {
   InvalidOutput,
@@ -16,7 +15,7 @@ import {
   CatOutput,
   Message,
 } from "./Output";
-import { useEffect, useRef, useState, useContext } from "react";
+import { useEffect, useRef, useState, useContext, useCallback, useLayoutEffect } from "react";
 import { useLogout } from "../hooks/useLogout";
 import "../App.css";
 import { createFS } from "../util/filesystem";
@@ -25,6 +24,7 @@ import { HighlightedText, NewChallengeInfo } from "../command";
 import { Progress } from "./Progress";
 // import {useAuthContext} from "../hooks/useAuthContext";
 import { AuthContext } from "../context/AuthContext";
+import CanvasComponent from "../components/Canvas";
 
 export default function Terminal({
   openEditor,
@@ -37,7 +37,7 @@ export default function Terminal({
   directory,
   setDirectory,
   setDeadline,
-  deadline,
+  editorMode
 }) {
   const { logout } = useLogout();
 
@@ -49,6 +49,7 @@ export default function Terminal({
   const [cmdPrompt, setCmdPrompt] = useState("");
   const { dispatch } = useContext(AuthContext);
   const [caretPosition, setCaretPosition] = useState(null);
+  const scrollEndViewRef = useRef(null);
 
   const terminalModes = {
     normal: "NORMAL",
@@ -58,6 +59,13 @@ export default function Terminal({
   const [terminalMode, setTerminalMode] = useState(terminalModes.normal);
 
   // MARK: ---------------------------- USEEFFECT --------------------------------------------------
+
+  useEffect(() => {
+    console.log("scrolllllllllllxxll ", outputs.length )
+    scrollEndViewRef.current?.scrollIntoView({ behavior: "smooth" });
+    if(!editorMode) focusTextArea();
+  }, [outputs, editorMode]);
+
   useEffect(() => {
     updateCommandPrompt(
       directory ? (directory.name === username ? "" : directory.name) : ""
@@ -67,6 +75,7 @@ export default function Terminal({
   useEffect(() => {
     setCursorIdx(caretPosition);
   }, [caretPosition]);
+
 
   // MARK: ---------------------- Handle user command ---------------------------------------------
   const handleChange = (event) => {
@@ -82,9 +91,10 @@ export default function Terminal({
 
     if (event.key === "Enter" && terminalMode === terminalModes.normal) {
       //TODO: FIRE COMMAND
-      setPreviousCmds((prev) =>
-        userCommand === previousCmds[0] ? prev : [userCommand, ...prev]
-      );
+      if(userCommand !== '')
+        setPreviousCmds((prev) =>
+          userCommand === previousCmds[0] ? prev : [userCommand, ...prev]
+        );
       setCurrentCmdIdx(-1);
       response();
       setUserCommand("");
@@ -220,7 +230,6 @@ export default function Terminal({
       ]);
       console.log(json);
     }
-    focusTextArea();
   };
 
   const submitChallenge = async (file) => {
@@ -255,10 +264,17 @@ export default function Terminal({
         setDeadline(json.deadline);
         setTerminalMode(terminalModes.normal);
         updateLocalUser(json.user);
-        setOutputs((prevState) => [
-          ...prevState,
+        const submissionOutputElements = [
+          <HTMLRenderer
+            key={nanoid()}
+            htmlString={`<p class='term-green'>Submission SUCCESSFUL.</p> `}
+          />,
           <Progress key={nanoid()} user={json.user} />,
-        ]);
+        ];
+        if (user.level === 1) {
+          submissionOutputElements.unshift(<CanvasComponent key={nanoid()} />);
+        }
+        setOutputs((prevState) => [...prevState, ...submissionOutputElements]);
         return;
       } else {
         setOutputs((prevState) => [
@@ -332,7 +348,7 @@ export default function Terminal({
       console.log(json);
     }
     setTerminalMode(terminalModes.normal);
-    focusTextArea();
+    // focusTextArea();
   };
 
   //MARK: -------------------------------- TERMINAL RESPONSE --------------------------------------
@@ -405,7 +421,7 @@ export default function Terminal({
         setOutputs((prevState) => [
           ...prevState,
           <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt} cmd={cmd} />,
-          ...help,
+          <Help key={nanoid()}/>,
         ]);
         break;
 
@@ -628,9 +644,9 @@ export default function Terminal({
         break;
 
       case "verify":
+        setTerminalMode(terminalModes.disable);
         findFileWithTarget(cmd, arg, (file) => {
           verifyChallenge(file);
-          setTerminalMode(terminalModes.disable);
           setOutputs((prevState) => [
             ...prevState,
             <EchoCmd key={nanoid()} cmdPrompt={cmdPrompt} cmd={userCommand} />,
@@ -803,9 +819,12 @@ export default function Terminal({
       </span>
     );
   }
-
+ 
   return (
-    <main className="console active terminal" onClick={focusTextArea}>
+    <main
+      className="console active terminal"
+      onClick={focusTextArea}
+    >
       <div className="terminal-wrapper">
         <div className="terminal-output">{outputs}</div>
         <div className="cmd enabled">
@@ -847,6 +866,7 @@ export default function Terminal({
             }}
             autoFocus
           />
+        <div ref={scrollEndViewRef}></div>
         </div>
       </div>
     </main>

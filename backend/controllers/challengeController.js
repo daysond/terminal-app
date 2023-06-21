@@ -33,8 +33,7 @@ exports.requestNewChallenge = async (req, res) => {
         const user = await User.findOne({_id})
         const userLevel = user.level
         const questionLevel = user.question
-        const newLevel = userLevel + 1
-        const newQuestionLevel = questionLevel + 1
+      
         console.log(user)
         // checks user level, 0? no futher checking
         const userEligible = user.status === 'new' || user.status === 'passed'
@@ -52,7 +51,7 @@ exports.requestNewChallenge = async (req, res) => {
             // TODO: completed condition ?
             const challenge = user.challenge 
             challenge.children.unshift(ChallengeToSolution(newChallenge))
-            challenge.children.filter(e=>e.name==='journal.txt')[0].content += `\n${newChallenge.intro}`
+            challenge.children.filter(e=>e.name==='journal.txt')[0].content += `\n\n${newChallenge.intro}`
             
             user.status = 'started'
             user.deadline = deadline
@@ -124,7 +123,6 @@ exports.saveChallenge = async (req, res) => {
 
 exports.submitChallenge = async (req, res) => {
 
-
     //TODO: 1. reuse VERIFY code
     const _id = req.user._id._id
     const response =  await codeRunner(_id, req.body.code)
@@ -141,13 +139,19 @@ exports.submitChallenge = async (req, res) => {
     if(status === 'passed') {
         
         const user = await User.findOne({_id})
+        console.log(user)
         //TODO: REMOVE comment
         if(user.question === user.totalLevelQuestions) {
+            // update user to new level
             const newChallenges = await ChallengeModel.find({level: user.level + 1, year: currentYear}, {_id:0}).lean()
+            const currentChallenge = await ChallengeModel.findOne({level: user.level, question: user.question, year: currentYear}, {_id:0}).lean()
+        
+            user.challenge.children.filter(e=>e.name==='journal.txt')[0].content += `\n\n${currentChallenge.outro}`
             user.totalLevelQuestions = newChallenges.length
             user.level+=1
             user.question = 1
         } else {
+            // update user to new question
             user.question + 1
         }
         user.status = status
