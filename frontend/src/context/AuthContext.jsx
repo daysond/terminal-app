@@ -31,33 +31,32 @@ export const AuthContextProvider = ({ children }) => {
     const user = JSON.parse(localStorage.getItem("user"));
 
     const verifyUser = async () => {
-        const requestOptions = {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              authorization: `Bearer ${user?.token}`,
-            },
-          };
-    
-          const response = await fetch(
-            "http://localhost:4000/api/user/verify_token",
-            requestOptions
-          );
-    
-          if (response.ok) {
-            dispatch({ type: "logged_in", payload: user });
-          } else {
-            const json = await response.json();
-            console.log(json.status, json.message);
-            dispatch({ type: "logged_out", payload: null });
-          }
-    }
+      const requestOptions = {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `Bearer ${user?.token}`,
+        },
+      };
+
+      const response = await fetch(
+        "http://159.203.11.15:4000/api/user/verify_token",
+        requestOptions
+      );
+
+      if (response.ok) {
+        dispatch({ type: "logged_in", payload: user });
+      } else {
+        const json = await response.json();
+        console.log(json.status, json.message);
+        dispatch({ type: "logged_out", payload: null });
+      }
+    };
 
     if (user) {
       console.log(user);
-      verifyUser()
+      verifyUser();
     }
-    
   }, []);
 
   console.log("AuthContext state: ", state);
