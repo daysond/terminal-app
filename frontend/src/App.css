@@ -124,7 +124,7 @@
   .cmd-prompt {
     margin-left: 0px;
     visibility: visible;
-    width: 15ch;
+    /* width: 15ch; */
     color: orange;
     
   }
@@ -149,14 +149,23 @@
   }
 
   .highlight-text-block {
+    white-space: pre-wrap;
     border-left: 10px solid  rgb(246, 226, 0);
     padding-left: 10px;
     margin: 5px 5px 15px 0px;
     color: rgb(242, 115, 219);
   }
 
-
-
+.canvas-wrapper {
+  display: flex;
+  justify-content: center;
+}
+.canvas {
+  width: 600px;
+  height: 400px;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
 
  /* editor  */
  .gutter.gutter-horizontal:hover {
