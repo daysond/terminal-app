@@ -61,7 +61,6 @@ export default function Terminal({
   // MARK: ---------------------------- USEEFFECT --------------------------------------------------
 
   useEffect(() => {
-    console.log("scrolllllllllllxxll ", outputs.length )
     scrollEndViewRef.current?.scrollIntoView({ behavior: "smooth" });
     if(!editorMode) focusTextArea();
   }, [outputs, editorMode]);
