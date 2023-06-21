@@ -7,6 +7,8 @@ const connection = amqp.connect(['amqp://rabbitmq:5672']);
 
 connection.on('connect', function () {
     // Install pip
+    //TODO: LASTEST URLhttps://bootstrap.pypa.io/get-pip.py
+    // Modify docker file to include python latest in the container, and install pip as well,
     execSync('curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py');
     execSync('python3 get-pip.py');
 
