@@ -52,7 +52,7 @@ exports.requestNewChallenge = async (req, res) => {
             // TODO: completed condition ?
             const challenge = user.challenge 
             challenge.children.unshift(ChallengeToSolution(newChallenge))
-            challenge.children.filter(e=>e.name==='journal.txt')[0].content += `\n${newChallenge.intro}`
+            challenge.children.filter(e=>e.name==='journal.txt')[0].content += `\n\n${newChallenge.intro}`
             
             user.status = 'started'
             user.deadline = deadline
