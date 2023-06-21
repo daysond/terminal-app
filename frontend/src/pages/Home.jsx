@@ -35,7 +35,7 @@ export const Home = () => {
     setOutputs([
       <WelcomeBanner key={nanoid()} />,
       <MountingPrompt key={nanoid()} username={username} />,
-      <CanvasComponent />
+      // <CanvasComponent />
     ]);
     setOS(getOperatingSystem(window));
 
