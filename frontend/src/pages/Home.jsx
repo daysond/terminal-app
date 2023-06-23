@@ -39,14 +39,11 @@ export const Home = () => {
     setOS(getOperatingSystem(window));
 
     const fetchFileSystem = async () => {
-      const response = await fetch(
-        "http://178.128.227.42:4000/api/challenge/",
-        {
-          headers: {
-            authorization: `Bearer ${user?.token}`,
-          },
-        }
-      );
+      const response = await fetch("http://159.203.11.15:4000/api/challenge/", {
+        headers: {
+          authorization: `Bearer ${user?.token}`,
+        },
+      });
 
       const json = await response.json();
 
@@ -114,7 +111,7 @@ export const Home = () => {
     };
 
     const response = await fetch(
-      "http://178.128.227.42:4000/api/challenge/save",
+      "http://159.203.11.15:4000/api/challenge/save",
       requestOptions
     );
 
