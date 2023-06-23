@@ -136,6 +136,11 @@ exports.submitChallenge = async (req, res) => {
         res.status(200).json(response)
     }
 
+    if(status === 'error') {
+        const response =   {result: result, status: status} 
+        res.status(201).json(response)
+    }
+
     if(status === 'passed') {
         
         const user = await User.findOne({_id})
@@ -213,7 +218,7 @@ const codeRunner = async (_id, code) => {
             }	)
           }
    
-        const response = await fetch("http://159.203.11.15:5001/submit", requestOptions) // REVIEW: USED FOR DEV
+        const response = await fetch("http://localhost:5001/submit", requestOptions) // REVIEW: USED FOR DEV
         const json = await response.json()
         const {status, data} = json
    
@@ -232,7 +237,9 @@ const codeRunner = async (_id, code) => {
                 } else if (statusCode === 200) {
     
                     const resultJson = await result.json()
+                    console.log('json', resultJson)
                     const {status, data} = resultJson
+                    console.log("====== data =====")
                     console.log(data)
     
                     if(status.trimEnd() !== 'ok') {
@@ -248,6 +255,8 @@ const codeRunner = async (_id, code) => {
                     }
                     
                     const outputJson = JSON.parse(data.output)
+
+                    console.log(outputJson)
     
                     return{
                         status: 200,
@@ -267,6 +276,7 @@ const codeRunner = async (_id, code) => {
         }
 
     } catch (error) {
+        console.log('====error ===')
         console.log(error)
         return {
             status: 400,

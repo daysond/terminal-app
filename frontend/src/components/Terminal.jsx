@@ -198,7 +198,7 @@ export default function Terminal({
     };
 
     const response = await fetch(
-      "http://159.203.11.15:4000/api/challenge/request",
+      "http://localhost:4000/api/challenge/request",
       requestOptions
     );
 
@@ -250,11 +250,12 @@ export default function Terminal({
     };
     console.log("submiting", requestOptions.body);
     const response = await fetch(
-      "http://159.203.11.15:4000/api/challenge/submit",
+      "http://localhost:4000/api/challenge/submit",
       requestOptions
     );
 
     const json = await response.json();
+    console.log("get json????");
     console.log(json);
     if (response.ok) {
       // console.log(json);
@@ -288,10 +289,18 @@ export default function Terminal({
 
         setOutputs((prevState) => [...prevState, ...submissionOutputElements]);
         return;
-      } else {
+      } else if (json.status === "failed") {
         setOutputs((prevState) => [
           ...prevState,
           <TestCaseResult key={nanoid()} result={json.result} />,
+        ]);
+      } else {
+        setOutputs((prevState) => [
+          ...prevState,
+          <HTMLRenderer
+            key={nanoid()}
+            htmlString={`<p class='term-warning'> Error: ${json.result}</p> `}
+          />,
         ]);
       }
     } else {
@@ -322,7 +331,7 @@ export default function Terminal({
     };
 
     const response = await fetch(
-      "http://159.203.11.15:4000/api/challenge/verify",
+      "http://localhost:4000/api/challenge/verify",
       requestOptions
     );
 
