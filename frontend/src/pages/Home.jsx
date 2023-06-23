@@ -5,7 +5,6 @@ import Split from "react-split";
 import AceEditor from "react-ace";
 import "ace-builds/src-noconflict/mode-python";
 import "ace-builds/src-noconflict/theme-monokai";
-import "ace-builds/src-noconflict/theme-github";
 import "ace-builds/src-noconflict/snippets/python";
 import "ace-builds/src-noconflict/ext-language_tools";
 import Terminal from "../components/Terminal";
@@ -197,7 +196,7 @@ export const Home = () => {
                       height="100%"
                       width="100%"
                       mode="python"
-                      theme="github"
+                      theme="monokai"
                       wrapEnabled={true}
                       showPrintMargin={false}
                       cursorStart={3}
