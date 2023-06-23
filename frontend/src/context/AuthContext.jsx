@@ -40,7 +40,7 @@ export const AuthContextProvider = ({ children }) => {
       };
 
       const response = await fetch(
-        "http://159.203.11.15:4000/api/user/verify_token",
+        "http://localhost:4000/api/user/verify_token",
         requestOptions
       );
 

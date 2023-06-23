@@ -1,5 +1,5 @@
 {
-  "proxy": "http://159.203.11.15:4000",
+  "proxy": "http://localhost:4000",
   "name": "project-foobar",
   "private": true,
   "version": "0.0.0",
@@ -13,7 +13,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "ace-builds": "^1.22.1",
     "nanoid": "^4.0.2",
     "react": "^18.2.0",
     "react-ace": "^10.1.0",
