@@ -1,5 +1,5 @@
 {
-  "proxy": "http://159.203.11.15:4000",
+  "proxy": "http://178.128.227.42:4000",
   "name": "project-foobar",
   "private": true,
   "version": "0.0.0",
