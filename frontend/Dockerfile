@@ -1,8 +1,9 @@
 # Dockerfile - frontend
-FROM node:18-alpine3.17 as build
+FROM node:18.14.0
 WORKDIR /app
-COPY . /app
+COPY package.json .
 RUN npm install
+COPY . ./
 EXPOSE 3000
 CMD ["npm", "run", "dev"] 
 
