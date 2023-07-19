@@ -40,21 +40,27 @@ export const AuthContextProvider = ({ children }) => {
       };
 
       const response = await fetch(
-        "http://159.203.11.15:4000/api/user/verify_token",
+        "http://localhost:4000/api/user/verify_token",
         requestOptions
       );
 
       if (response.ok) {
-        dispatch({ type: "logged_in", payload: user });
+        const json = await response.json();
+        const updatedItem = { token: user.token, ...json.user }
+        localStorage.setItem(
+          "user",
+          JSON.stringify(updatedItem)
+        );
+        dispatch({ type: "logged_in", payload: updatedItem });
       } else {
         const json = await response.json();
-        console.log(json.status, json.message);
+        console.log('DEBUG: error getting token ',json.status, json.message);
         dispatch({ type: "logged_out", payload: null });
       }
     };
 
     if (user) {
-      console.log(user);
+      console.log("DEBUG: Verifying user... ", user);
       verifyUser();
     }
   }, []);

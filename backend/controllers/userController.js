@@ -10,6 +10,8 @@ const createToken = (_id) => {
 // log in 
 const loginUser = async (req, res) => {
 
+    console.log("debug: login")
+
     const {email, password} = req.body
     
     try {
@@ -22,6 +24,8 @@ const loginUser = async (req, res) => {
             token,
             ...user.toObject()
         }
+
+        await validateTimeout(user)
 
         delete response.password
         delete response._id
@@ -66,15 +70,47 @@ const signupUser = async (req, res) => {
 
 const verifyToken = async (req, res) => {
     
-    return req.user ? 
-    res.status(200).json({
-        status: 'Success',
-        message: 'User verified.'
-    }) :
-    res.status(401).json({
-        status: 'Unauthorized',
-        message: 'Token valid but user was not found.'
-    })
+    //TODO: return user as response (same as user login )
+    await validateTimeout(req.user)
+
+    if (req.user) {
+        const user = {
+            ...req.user.toObject()
+        }
+
+        delete user.password
+        delete user._id
+
+        // console.log('DEBUG: verifying user...', user)
+
+        res.status(200).json({
+            status: 'Success',
+            message: 'User verified.',
+            user: user
+        }) 
+       
+    } else {
+        console.log('DEBUG: 401 not found')
+        res.status(401).json({
+            status: 'Unauthorized',
+            message: 'Token valid but user was not found.'
+        })
+
+    }
+}
+
+const validateTimeout = async (user) => {
+    // returns true if timedout, false otherwise
+    console.log('[DEBUG]: validating timeout....')
+    const now = Date.now()
+    const deadline = user.deadline
+
+    user.status = 'timeout'
+
+    await user.save()
+
+    return now > deadline
+
 }
 
 module.exports = { signupUser, loginUser, verifyToken}
