@@ -1,6 +1,7 @@
 // Model
 const {ChallengeModel} = require('../models/challengeModel')
 const User = require('../models/userModel')
+const Submission = require('../models/submissionModel')
 const {solutionSchema, SolutionModel, ChallengeToSolution} = require('../models/solutionModel')
 const Tester = require('../models/testerModel')
 
@@ -146,6 +147,14 @@ exports.submitChallenge = async (req, res) => {
         const user = await User.findOne({_id})
         let outro = null
         console.log(user)
+
+        const newSubmission = new Submission({
+            email: user.email,
+            level: user.level,
+            question: user.question,
+            code: req.body.code,
+            year: currentYear
+        })
         
         //TODO: REMOVE comment
         if(user.level === 5 && user.question === user.totalLevelQuestions) {
@@ -181,6 +190,7 @@ exports.submitChallenge = async (req, res) => {
         const response =   {result: result, user: user, deadline: null, status: status, outro: outro} 
         
         await user.save()
+        await newSubmission.save()
         res.status(200).json(response)
     }
 
@@ -218,7 +228,7 @@ const codeRunner = async (_id, code) => {
             }	)
           }
    
-        const response = await fetch("http://localhost:5001/submit", requestOptions) // REVIEW: USED FOR DEV
+        const response = await fetch("http://172.21.0.5:5001/submit", requestOptions) // REVIEW: USED FOR DEV
         const json = await response.json()
         const {status, data} = json
    

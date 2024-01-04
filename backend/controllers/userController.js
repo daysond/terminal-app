@@ -20,12 +20,17 @@ const loginUser = async (req, res) => {
 
         const token = createToken(user._id)
 
+        const now = Date.now()
+        const deadline = user.deadline
+        if(deadline !== null && now >= deadline) {
+            user.status = 'timeout'
+            await user.save()
+        }
+
         const response = {
             token,
             ...user.toObject()
         }
-
-        await validateTimeout(user)
 
         delete response.password
         delete response._id
@@ -36,7 +41,6 @@ const loginUser = async (req, res) => {
     } catch (error) {
         res.status(400).json({error: error.message})
     }
-
 
 }
 
@@ -71,7 +75,7 @@ const signupUser = async (req, res) => {
 const verifyToken = async (req, res) => {
     
     //TODO: return user as response (same as user login )
-    await validateTimeout(req.user)
+
 
     if (req.user) {
         const user = {
@@ -99,18 +103,5 @@ const verifyToken = async (req, res) => {
     }
 }
 
-const validateTimeout = async (user) => {
-    // returns true if timedout, false otherwise
-    console.log('[DEBUG]: validating timeout....')
-    const now = Date.now()
-    const deadline = user.deadline
-
-    user.status = 'timeout'
-
-    await user.save()
-
-    return now > deadline
-
-}
 
 module.exports = { signupUser, loginUser, verifyToken}

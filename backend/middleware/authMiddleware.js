@@ -24,12 +24,24 @@ const auth = async (req, res, next) => {
         const {_id} = jwt.verify(token, process.env.JWT_SECRET)
 
         // req.user = await User.findOne({_id}).select('_id')
+        console.log("id is ", _id)
         req.user = await User.findOne({_id})
+        
+        console.log(req.user)
+
+        const now = Date.now()
+        const deadline = req.user.deadline
+    
+        if (deadline !== null && now >= deadline) {
+            req.user.status = 'timeout'
+            await req.user.save()
+        }
+    
         console.log('DEBUG: Auth User')
         next()
 
     } catch (error) {
-        console.log("DEBUG: STRANGE ERROR")
+        console.log("DEBUG: STRANGE ERROR ", error)
         return res.status(401).json({
             status: 'fail',
             message: 'Unauthorized. Invalid token.'

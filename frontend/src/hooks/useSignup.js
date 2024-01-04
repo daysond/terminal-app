@@ -25,6 +25,8 @@ export const useSignup = () => {
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({email, password})
         })
+
+        console.log(`${email} ${password}`)
         
         try {
             const json = await response.json()

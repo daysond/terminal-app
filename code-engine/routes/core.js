@@ -5,6 +5,7 @@ import { getFromRedis, errorResponse, successResponse } from '../utils.js'
 const router = express.Router();
 
 router.post("/submit", async (req, res) => {
+    console.log(`submitted ${req.body}`)
     try {
         let data = {
             'src': req.body.src,

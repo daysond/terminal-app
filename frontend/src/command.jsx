@@ -2,7 +2,7 @@ import { nanoid } from "nanoid";
 
 export const Help = () => {
   return (
-    <div className="cmd-group">
+    <div className="cmd-group" key={nanoid()}>
       <span className="command cmd-width">clear</span> - Clear console
       <br />
       <span className="command cmd-width">ls</span> - List directory contents
@@ -31,7 +31,7 @@ export const Help = () => {
   );
 };
 export const start = (
-  <div className="cmd-group">
+  <div className="cmd-group" key={nanoid()}>
     <p>
       Type <span className="command">request</span> to request a challenge.
     </p>
@@ -45,7 +45,7 @@ export const verifyCode = `<p> Type  <span class="command">request</span>  to re
 
 export const MountingPrompt = ({ username }) => {
   return (
-    <div className="cmd-group">
+    <div className="cmd-group" key={nanoid()}>
       <p>
         Mounting <span className="command">/home/{username}...</span>
       </p>
@@ -60,7 +60,7 @@ export const MountingPrompt = ({ username }) => {
 
 export const HighlightedText = ({ text }) => {
   return (
-    <div>
+    <div key={nanoid()}>
       <p className="highlight-text-block">{text}</p>
     </div>
   );
@@ -68,7 +68,7 @@ export const HighlightedText = ({ text }) => {
 
 export const NewChallengeInfo = ({ name, timeLimit }) => {
   return (
-    <div className="cmd-group">
+    <div className="cmd-group" key={nanoid()}>
       <p>
         New challenge <span className="command">"{name}"</span> added to your
         home folder.
@@ -83,7 +83,7 @@ export const NewChallengeInfo = ({ name, timeLimit }) => {
 
 export const RequestWarning = () => {
   return (
-    <div className="cmd-group">
+    <div className="cmd-group" key={nanoid()}>
       <p>
         <span className="term-warning">
           You are about to begin a TIME-LIMITED challenge. You will have 7 days
@@ -102,7 +102,7 @@ export const RequestWarning = () => {
 
 export const WarningMessage = ({msg}) => {
   return (
-    <div className="cmd-group">
+    <div className="cmd-group" key={nanoid()}>
       <p>
         <span className="term-warning">
           {msg}
@@ -114,7 +114,7 @@ export const WarningMessage = ({msg}) => {
 
 export const AllTestPassed = () => {
   return (
-    <div className="cmd-group">
+    <div className="cmd-group" key={nanoid()}>
       <p>
         <span className="term-green">All test cases passed.</span> Use{" "}
         <span className="command">submit solution.py</span> to submit your
